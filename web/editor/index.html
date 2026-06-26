@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sydney, Layered — Data Editor</title>
+  <link href="editor.css?v=10" rel="stylesheet" />
+</head>
+<body>
+  <header id="topbar">
+    <strong>Sydney, Layered · Data Editor</strong>
+    <nav id="tabs"></nav>
+    <span id="save-state" class="muted">loading…</span>
+    <button id="save-btn" disabled>Save file</button>
+    <button id="publish-btn" title="Save everything to the live website">Publish ↑</button>
+  </header>
+
+  <main id="layout">
+    <aside id="list-pane">
+      <div class="list-controls">
+        <input id="search" placeholder="Search…" autocomplete="off" />
+        <select id="filter">
+          <option value="all">All</option>
+          <option value="unreviewed">Unreviewed</option>
+          <option value="reviewed">Reviewed</option>
+          <option value="emdash">Has em dash</option>
+          <option value="aitell">Has AI tell</option>
+        </select>
+      </div>
+      <div id="list-count" class="muted"></div>
+      <ul id="item-list"></ul>
+    </aside>
+
+    <section id="edit-pane">
+      <div id="empty" class="muted pad">Pick an item from the list to edit it.<br><br>Formatting: in any text box, select text and press <b>⌘/Ctrl+B</b> for <b>bold</b> or <b>⌘/Ctrl+I</b> for <i>italic</i> — or type <code>**bold**</code> / <code>*italic*</code> directly.</div>
+      <form id="editor" hidden></form>
+    </section>
+
+    <aside id="side-pane" hidden>
+      <div class="side-section">
+        <h3>Fact-check</h3>
+        <div id="factlinks" class="factlinks"></div>
+      </div>
+      <div class="side-section">
+        <h3>Lint <span id="lint-badge" class="badge"></span></h3>
+        <div id="lint"></div>
+      </div>
+      <div class="side-section">
+        <h3>Preview</h3>
+        <div id="preview" class="card-preview"></div>
+      </div>
+    </aside>
+  </main>
+
+  <div id="toast"></div>
+  <script src="editor.js?v=10"></script>
+</body>
+</html>

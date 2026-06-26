@@ -1,0 +1,15 @@
+# secrets
+.trove_key
+.env
+# local tooling / scratch (not part of the website)
+.claude/
+pipeline/
+candidates/
+# editor working files
+web/data/.backups/
+web/data/.prewave-originals/
+web/img/.DS_Store
+# os / misc
+**/.DS_Store
+*.log
+node_modules/

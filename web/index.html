@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sydney, Layered — an interactive history of Sydney</title>
+  <link href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css" rel="stylesheet" />
+  <link href="style.css?v=20260624zb" rel="stylesheet" />
+</head>
+<body>
+  <aside id="sidebar">
+    <button id="sheet-close" aria-label="Close panel">✕</button>
+    <header>
+      <h1>Sydney, Layered</h1>
+      <p class="tagline">Historical Sydney, mapped — Kamay to Parramatta, 1770 to today.</p>
+    </header>
+
+    <section class="control" id="feature-search">
+      <h2>Search</h2>
+      <div class="suburb-row">
+        <input list="feature-list" id="feature-input" placeholder="Search people, places &amp; stories…" autocomplete="off" />
+        <button id="feature-clear" title="Clear search" hidden>×</button>
+      </div>
+      <datalist id="feature-list"></datalist>
+    </section>
+
+    <section class="control" id="suburb-search">
+      <h2>Suburbs</h2>
+      <div class="suburb-row">
+        <input list="suburb-list" id="suburb-input" placeholder="Find a suburb — try Bondi, Parramatta…" autocomplete="off" />
+        <button id="suburb-clear" title="Clear suburb" hidden>×</button>
+      </div>
+      <datalist id="suburb-list"></datalist>
+    </section>
+
+    <section id="story-detail" hidden></section>
+
+    <section class="control">
+      <h2>Time travel</h2>
+      <div id="year-chips" class="chips"></div>
+      <p id="year-caption" class="hint"></p>
+      <p class="hint subtle">Each era shows its best rendition of Sydney — and only the people, places and stories of that time. Dimmed areas are outside the era's aerial coverage.</p>
+      <button id="evolution-btn">▶ Watch Sydney grow — 30 seconds</button>
+      <label class="toggle">
+        <input type="checkbox" id="labels-toggle" />
+        Street &amp; place labels
+      </label>
+    </section>
+
+    <section class="control">
+      <h2>Filters</h2>
+      <div class="filter-label">Show</div>
+      <div id="type-filter" class="chips"></div>
+      <div class="filter-label">Theme</div>
+      <div id="theme-filter" class="chips"></div>
+    </section>
+
+    <section class="control">
+      <h2>Tours</h2>
+      <ul id="tour-list" class="tour-cards"></ul>
+    </section>
+
+    <section id="people-section" class="collapsible">
+      <h2>People</h2>
+      <ul id="people-list" class="pin-list"></ul>
+    </section>
+
+    <section id="buildings-section" class="collapsible">
+      <h2>Buildings</h2>
+      <ul id="building-list" class="pin-list"></ul>
+    </section>
+
+    <section id="streets-section" class="collapsible">
+      <h2>Streets</h2>
+      <ul id="street-list" class="pin-list"></ul>
+    </section>
+
+    <section id="stories-section" class="collapsible">
+      <h2>Stories</h2>
+      <div id="story-list"></div>
+    </section>
+  </aside>
+
+  <main id="map">
+    <div id="evolution-hud" hidden>
+      <div class="ev-year">1770</div>
+      <div class="ev-era">Country</div>
+    </div>
+    <div id="legend">
+      <div class="legend-row"><span class="swatch story"></span>Story</div>
+      <div class="legend-row"><span class="swatch building"></span>Building</div>
+      <div class="legend-row"><span class="swatch person"></span>Person</div>
+      <div class="legend-row"><span class="swatch street"></span>Street</div>
+      <div class="legend-eras"></div>
+    </div>
+  </main>
+
+  <button id="sidebar-toggle" aria-label="Show stories panel" aria-expanded="false">☰ Explore</button>
+  <button id="attrib-btn" aria-label="Map data credits" aria-expanded="false">ⓘ</button>
+  <div id="credits" hidden>
+    <div id="credits-panel">
+      <button id="credits-close" aria-label="Close credits">✕</button>
+      <div id="credits-text"></div>
+    </div>
+  </div>
+  <div id="boot" role="status">Mapping Sydney…</div>
+
+  <script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
+  <script src="app.js?v=20260624zb"></script>
+</body>
+</html>

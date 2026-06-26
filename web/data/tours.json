@@ -1,0 +1,1225 @@
+[
+ {
+  "id": "colonial-sydney",
+  "title": "Colonial Sydney",
+  "blurb": "The first sixty years, in order — the founding, the convict system, the Eora, the rebels and the emancipists who built a city out of a gaol.",
+  "stops": [
+   {
+    "ref": "story:warrane-sydney-cove",
+    "note": "26 January 1788: the First Fleet drops anchor at Warrane, Gadigal country. A penal camp of a thousand convicts and marines becomes the seed of a city.",
+    "quote": "“We had the satisfaction of finding the finest harbour in the world, in which a thousand sail of the line may ride in the most perfect security.” — Governor Arthur Phillip, 1788"
+   },
+   {
+    "ref": "story:first-government-house",
+    "note": "On the rise above the cove, Governor Phillip raises the colony's first Government House — the seat of power, looking down on the convict camp below."
+   },
+   {
+    "ref": "story:tank-stream",
+    "note": "The whole settlement depends on one stream of fresh water. Convicts cut storage tanks into its sandstone bed; for a generation it is Sydney's lifeline."
+   },
+   {
+    "ref": "story:thomas-barrett-first-execution",
+    "note": "Within weeks, hunger and order collide: a teenage convict, Thomas Barrett, is hanged for stealing food — the colony's first execution."
+   },
+   {
+    "ref": "person:bennelong",
+    "note": "Phillip needs to understand the Eora whose land this is. The Wangal man Bennelong becomes go-between for two worlds — and gives his name to the point across the cove.",
+    "branches": [
+     {
+      "label": "Follow the growing colony",
+      "goto": 5
+     },
+     {
+      "label": "Turn to the harbour's defences",
+      "goto": 6
+     }
+    ]
+   },
+   {
+    "ref": "story:experiment-farm",
+    "note": "The camp is near starvation until, at Parramatta in 1789, the ex-convict James Ruse proves the soil can yield a crop — and earns the colony's first land grant."
+   },
+   {
+    "ref": "building:dawes-point",
+    "note": "On the western point, Lieutenant Dawes sets up an observatory and the colony's first gun battery — science and defence at the harbour mouth."
+   },
+   {
+    "ref": "story:castle-hill-rebellion",
+    "note": "1804: driven past endurance, Irish convicts rise at Castle Hill. The redcoats crush them at 'Vinegar Hill' — the first rebellion on Australian soil."
+   },
+   {
+    "ref": "story:rum-rebellion",
+    "note": "1808: the officers of the Rum Corps, who run the colony's trade in spirits, march on Government House and arrest Governor Bligh — the only armed coup in the nation's history."
+   },
+   {
+    "ref": "person:mary-reibey",
+    "note": "Order restored, a new class rises: the emancipists. Mary Reibey, transported at thirteen for horse theft, builds a trading empire and becomes the colony's merchant queen."
+   },
+   {
+    "ref": "building:cadmans-cottage",
+    "note": "Down at the waterline stands Cadman's Cottage (1816), home to the convict crews of the government boats — today the oldest house in the city."
+   },
+   {
+    "ref": "story:rum-hospital",
+    "note": "Governor Macquarie now sets the convicts building in stone. His grandest scheme is a hospital funded by a monopoly on rum (1811–16) — its wings survive as the Mint and Parliament House."
+   },
+   {
+    "ref": "building:macquarie-lighthouse",
+    "note": "At South Head in 1818, Macquarie's architect — the convict forger Francis Greenway — raises Australia's first lighthouse."
+   },
+   {
+    "ref": "building:hyde-park-barracks",
+    "note": "And from 1819 the convicts themselves sleep in Greenway's barracks on Macquarie Street, marched out to government labour each day."
+   },
+   {
+    "ref": "story:female-factory",
+    "note": "The convict women have their own institution: the Parramatta Female Factory (1821) — workhouse, marriage market and refuge in one."
+   },
+   {
+    "ref": "person:greenway",
+    "note": "The hand behind so much of this city is Francis Greenway, transported for forgery and freed by Macquarie on the strength of his buildings — Australia's first great architect."
+   },
+   {
+    "ref": "person:samuel-terry",
+    "note": "Wealth, not just stone, transforms the emancipists: Samuel Terry, another ex-convict, grows so rich on land and rum that he is called 'the Botany Bay Rothschild'."
+   },
+   {
+    "ref": "building:vaucluse-house",
+    "note": "And at Vaucluse, the native-born W. C. Wentworth turns emancipist confidence into politics — his committee will draft the constitution that wins the colony self-government in 1853."
+   }
+  ],
+  "year": "today",
+  "kind": "time"
+ },
+ {
+  "id": "the-rocks",
+  "title": "Tour The Rocks",
+  "blurb": "One square kilometre, every layer of the city's story — plague, pubs, demolition and defiance.",
+  "stops": [
+   {
+    "ref": "story:warrane-sydney-cove",
+    "note": "Start at the cove. Everything in The Rocks flows uphill from this shoreline."
+   },
+   {
+    "ref": "building:cadmans-cottage",
+    "note": "The water once lapped at this door — everything between here and the Quay is reclaimed land."
+   },
+   {
+    "ref": "building:susannah-place",
+    "note": "Up into the terraces: four houses, 150 years of working families, preserved as found."
+   },
+   {
+    "ref": "story:big-dig",
+    "note": "Around the corner, an entire colonial neighbourhood excavated and left open under a hostel on stilts."
+   },
+   {
+    "ref": "story:plague-1900",
+    "note": "These streets emptied in 1900 — plague, resumption, demolition. The photographs taken then are why we know them."
+   },
+   {
+    "ref": "story:observatory-hill",
+    "note": "Climb to the top: windmill, fort, observatory — and the best free view in Sydney."
+   },
+   {
+    "ref": "story:hero-of-waterloo",
+    "note": "Pause at the Hero of Waterloo — and ask the bar staff about the trapdoor in the cellar."
+   },
+   {
+    "ref": "building:dawes-point",
+    "note": "Down to the point beneath the bridge, where the colony first mounted guns."
+   },
+   {
+    "ref": "person:jack-mundey",
+    "note": "End at the corner named for the man whose green bans saved everything you just walked through."
+   },
+   {
+    "ref": "building:harbour-bridge",
+    "note": "And above it all, the arch that demolished half the neighbourhood to rise — and made the rest immortal."
+   }
+  ],
+  "year": "today",
+  "kind": "walk"
+ },
+ {
+  "id": "dark-sydney",
+  "title": "Dark Sydney",
+  "blurb": "Shipwreck, gibbet, razor gangs and unsolved cases — the city's shadow history.",
+  "stops": [
+   {
+    "ref": "story:the-dunbar-1857",
+    "note": "Begin at The Gap on a stormy thought: 121 souls lost against these cliffs in one night of 1857."
+   },
+   {
+    "ref": "building:quarantine-station",
+    "note": "Across to North Head, where the quarantined carved their names — and many never left. Sydney's most haunted address, by reputation."
+   },
+   {
+    "ref": "story:clontarf-attack-1868",
+    "note": "On this picnic beach, an assassin shot a prince in the back in 1868."
+   },
+   {
+    "ref": "building:fort-denison",
+    "note": "Out on the water: Pinchgut, where a hanged man swung in chains for years as a warning."
+   },
+   {
+    "ref": "building:luna-park",
+    "note": "The grinning Face hides the park's darkest night — the Ghost Train fire of 1979."
+   },
+   {
+    "ref": "person:rosaleen-norton",
+    "note": "Into Kings Cross, where the Witch faced the obscenity squads of the 1950s."
+   },
+   {
+    "ref": "person:juanita-nielsen",
+    "note": "Victoria Street, 1975: the publisher who fought the developers and vanished. No body, no conviction."
+   },
+   {
+    "ref": "person:tilly-devine",
+    "note": "Palmer Street — the Queen of the loophole, her empire run from these terraces."
+   },
+   {
+    "ref": "person:kate-leigh",
+    "note": "Over the hill in Surry Hills, her great rival: sly grog, cocaine, and Christmas parties for the children."
+   },
+   {
+    "ref": "story:shark-arm-case",
+    "note": "To Coogee, where a captured shark coughed up a tattooed arm — and a murder case."
+   },
+   {
+    "ref": "story:graeme-thorne",
+    "note": "End in Bondi with the kidnapping that ended an innocence — and changed the lottery laws."
+   }
+  ],
+  "year": "today",
+  "kind": "theme"
+ },
+ {
+  "id": "rebels-bohemians",
+  "title": "Rebels & Bohemians",
+  "blurb": "Picture palaces, pub philosophers, soapbox orators and the night march that became Mardi Gras.",
+  "stops": [
+   {
+    "ref": "building:state-theatre",
+    "note": "Start under the chandelier of the Empire's greatest theatre — the survivor of Sydney's picture-palace age."
+   },
+   {
+    "ref": "story:trocadero",
+    "note": "A block south stood the Troc, where the city jitterbugged through the war. The wreckers took it in 1971."
+   },
+   {
+    "ref": "story:sydney-push",
+    "note": "Down Sussex Street to the Royal George, where the Push argued Greer, James and Hughes into existence."
+   },
+   {
+    "ref": "person:bea-miles",
+    "note": "Through Martin Place, Bea Miles territory — Shakespeare, a shilling a sonnet."
+   },
+   {
+    "ref": "story:domain-speakers",
+    "note": "Into the Domain, parliament of the people: every Sunday, every creed, heckled equally."
+   },
+   {
+    "ref": "person:rosaleen-norton",
+    "note": "Up to the Cross, where bohemia lived dangerously — and Goossens' opera-house dream burned beside Norton's scandal."
+   },
+   {
+    "ref": "person:arthur-stace",
+    "note": "Darlinghurst, before dawn: one word in perfect copperplate, half a million times."
+   },
+   {
+    "ref": "story:mardi-gras",
+    "note": "Finish at Taylor Square: 24 June 1978, 53 arrests — and the parade that answers them every year since."
+   }
+  ],
+  "year": "today",
+  "kind": "theme"
+ },
+ {
+  "id": "sporting-sydney",
+  "title": "Sporting Sydney",
+  "blurb": "From the swim that broke the law to the night Cathy Freeman ran — beaches, tracks and grandstands.",
+  "stops": [
+   {
+    "ref": "story:manly-gocher",
+    "note": "Begin at Manly, where a newspaper editor's illegal midday swim invented Australian beach culture."
+   },
+   {
+    "ref": "story:bondi-slsc",
+    "note": "Across to Bondi: once the ocean was legal, someone had to get everyone out alive. The reel and flags start here."
+   },
+   {
+    "ref": "story:black-sunday",
+    "note": "Mid-beach, 1938: three freak waves, 250 rescues in minutes — lifesaving's greatest hour."
+   },
+   {
+    "ref": "story:bondi-icebergs",
+    "note": "At the south end, the winter swimmers' pool — three Sundays a month, five years, no excuses."
+   },
+   {
+    "ref": "person:fanny-durack",
+    "note": "Down the coast at Wylie's Baths, where the fastest woman in the water trained for Stockholm 1912."
+   },
+   {
+    "ref": "story:maroubra-speedway",
+    "note": "Behind the dunes, the ghost of the killer track — a concrete saucer the suburb swallowed."
+   },
+   {
+    "ref": "story:randwick-racecourse",
+    "note": "Inland to Randwick, racing since 1833 on the old Sandy Course."
+   },
+   {
+    "ref": "person:victor-trumper",
+    "note": "To the SCG, stage of cricket's doomed artist."
+   },
+   {
+    "ref": "story:bodyline",
+    "note": "Same turf, 1932: the summer England aimed at the batsman and the Empire wobbled."
+   },
+   {
+    "ref": "story:sydney-stadium-rushcutters",
+    "note": "At Rushcutters Bay stood the tin shed where Jack Johnson changed boxing — and history — on Boxing Day 1908."
+   },
+   {
+    "ref": "person:dawn-fraser",
+    "note": "Across the city to Balmain's tidal baths, home of three straight Olympic golds."
+   },
+   {
+    "ref": "story:olympic-park",
+    "note": "Finish at Homebush: from abattoir to the night 112,000 people watched Cathy Freeman run the 400."
+   }
+  ],
+  "year": "today",
+  "kind": "theme"
+ },
+ {
+  "id": "birth-of-a-city",
+  "title": "Birth of a City",
+  "year": "today",
+  "blurb": "How a penal camp became a town — from Cook's landing to Macquarie's Sydney, in the order it happened.",
+  "stops": [
+   {
+    "ref": "story:kurnell",
+    "note": "April 1770: the Endeavour anchors at Kamay (Botany Bay). Cook claims the east coast — and eighteen years later the British return to stay."
+   },
+   {
+    "ref": "story:la-perouse",
+    "note": "January 1788: as the First Fleet arrives, two French ships sail in behind them. For six weeks the rivals share Botany Bay — but the British have already moved on."
+   },
+   {
+    "ref": "story:camp-cove",
+    "note": "Phillip finds Botany Bay too poor and rows north into Port Jackson. On 21 January 1788 his party spends the first night ashore here, inside the Heads."
+   },
+   {
+    "ref": "story:warrane-sydney-cove",
+    "note": "Five days later the whole fleet moves up to Warrane — deep water and a freshwater stream. On 26 January 1788 the flag goes up and Sydney begins."
+   },
+   {
+    "ref": "story:tank-stream",
+    "note": "Everything depends on that stream. Convicts cut storage tanks into its bed, and the infant town clusters along its banks."
+   },
+   {
+    "ref": "story:first-government-house",
+    "note": "On the rise above the cove, Phillip raises the colony's first Government House — the seat of power for the next half-century."
+   },
+   {
+    "ref": "story:experiment-farm",
+    "note": "The camp is starving. At Parramatta in 1789 the ex-convict James Ruse proves the land can feed the colony, and earns the first land grant."
+   },
+   {
+    "ref": "story:toongabbie-convict-settlement",
+    "note": "Upriver, the government farm at Toongabbie works convict gangs hard to grow the grain that keeps Sydney alive."
+   },
+   {
+    "ref": "story:castle-hill-rebellion",
+    "note": "1804: pushed too far, Irish convicts rise at Castle Hill. The redcoats crush them at 'Vinegar Hill' — the colony's first rebellion."
+   },
+   {
+    "ref": "story:rum-hospital",
+    "note": "Governor Macquarie, arriving in 1810, sets the convicts building in stone. His grandest scheme is a hospital paid for in rum (1811–16), whose wings survive as the Mint and Parliament House."
+   },
+   {
+    "ref": "building:macquarie-lighthouse",
+    "note": "At South Head in 1818, his architect Greenway raises Australia's first lighthouse — the convict forger's freedom, and a rough camp's coming of age."
+   },
+   {
+    "ref": "building:hyde-park-barracks",
+    "note": "And from 1819 the convicts sleep in Greenway's barracks on Macquarie Street, marched to government work each day — the convict city made solid."
+   }
+  ],
+  "kind": "time"
+ },
+ {
+  "id": "rum-and-rebellion",
+  "title": "Rum, Rebellion & a Stolen Governor",
+  "year": "today",
+  "blurb": "The grog that ran the colony — and the morning the army arrested the King's own governor.",
+  "stops": [
+   {
+    "ref": "story:first-government-house",
+    "note": "By 1806 the real currency of New South Wales is rum, and the officers of the NSW Corps control the trade. Into this walks Governor William Bligh — of Bounty fame — determined to break their grip."
+   },
+   {
+    "ref": "story:rum-rebellion",
+    "note": "26 January 1808, twenty years to the day after the founding: the Corps marches on Government House and arrests Bligh. Australia's only armed seizure of government — the Rum Rebellion."
+   },
+   {
+    "ref": "story:rum-hospital",
+    "note": "London sends Macquarie to restore order in 1810 — and he promptly strikes his own rum bargain, funding a grand hospital by selling three merchants a three-year monopoly on the spirit trade."
+   },
+   {
+    "ref": "building:the-mint",
+    "note": "The hospital's south wing still stands: later the colonial branch of the Royal Mint, where gold from the diggings became sovereigns."
+   },
+   {
+    "ref": "building:parliament-house",
+    "note": "Its north wing became the Parliament of New South Wales — the rum hospital now home to the state's lawmakers."
+   },
+   {
+    "ref": "building:hyde-park-barracks",
+    "note": "Macquarie's building spree rolled on — barracks, churches and courthouses, almost all from the hand of his emancipist architect, Francis Greenway."
+   },
+   {
+    "ref": "building:vaucluse-house",
+    "note": "And the emancipist cause Bligh's enemies feared came good: at Vaucluse, W. C. Wentworth's committee drafted the constitution that won the colony self-government in 1853."
+   }
+  ],
+  "kind": "time"
+ },
+ {
+  "id": "how-sydney-got-its-water",
+  "title": "How Sydney Got Its Water",
+  "year": "today",
+  "blurb": "Follow the city's thirst across a century — from a fouled stream to a tunnel, a swamp and a great reservoir.",
+  "stops": [
+   {
+    "ref": "story:tank-stream",
+    "note": "1788: Sydney is founded on this one freshwater stream. Within a generation the growing town fouls it with refuse and run-off."
+   },
+   {
+    "ref": "story:lachlan-swamps",
+    "note": "By the 1820s the Tank Stream is an open drain. The colony turns to the Lachlan Swamps — today's Centennial Park — for clean water."
+   },
+   {
+    "ref": "story:busbys-bore",
+    "note": "From 1827 convicts hand-dig a tunnel nearly four kilometres from the swamps to Hyde Park: Busby's Bore, the city's first piped supply, finished 1837."
+   },
+   {
+    "ref": "building:prospect-reservoir",
+    "note": "The city outgrows the bore too. The Upper Nepean Scheme dams distant rivers and banks the water at Prospect Reservoir, opened 1888."
+   },
+   {
+    "ref": "story:ryde-pumping-station",
+    "note": "And from 1891, great steam engines at Ryde pump that water uphill to slake the booming northern suburbs."
+   }
+  ],
+  "kind": "theme"
+ },
+ {
+  "id": "defending-the-harbour",
+  "title": "Defending the Harbour",
+  "year": "today",
+  "blurb": "A century and a half of guns on the water — from the first colonial battery to the night the war came to Sydney.",
+  "stops": [
+   {
+    "ref": "building:dawes-point",
+    "note": "1791: the colony's first gun battery, on the point the Gadigal called Tarra, guarding the mouth of the cove.",
+    "camera": {
+     "zoom": 15.4,
+     "pitch": 58,
+     "bearing": 25
+    }
+   },
+   {
+    "ref": "building:fort-denison",
+    "note": "For decades just a rock and a gibbet; a scare over Russian and American warships finally fortifies it in 1857 as a Martello tower — Fort Denison.",
+    "camera": {
+     "zoom": 15.6,
+     "pitch": 60,
+     "bearing": -20
+    },
+    "quote": "“The last Martello tower built anywhere in the British Empire.” — on Fort Denison's 1857 gun tower"
+   },
+   {
+    "ref": "story:bradleys-head",
+    "note": "As the colony grows, sandstone batteries ring the harbour. From the 1870s the guns of Bradleys Head command the approach up-harbour.",
+    "camera": {
+     "zoom": 15.3,
+     "pitch": 62,
+     "bearing": 40
+    }
+   },
+   {
+    "ref": "story:middle-head",
+    "note": "Beside it, the great works of Middle Head — rings of forts and tunnels dug into the headland.",
+    "camera": {
+     "zoom": 15.2,
+     "pitch": 60,
+     "bearing": 70
+    }
+   },
+   {
+    "ref": "building:georges-head-battery",
+    "note": "And the Georges Head battery alongside, its guns trained back toward the Heads."
+   },
+   {
+    "ref": "building:steel-point-battery",
+    "note": "Further in, Steele Point's battery covers the inner reaches from the Nielsen Park shore."
+   },
+   {
+    "ref": "building:bare-island-la-perouse",
+    "note": "Out at Botany Bay, Bare Island's concrete fort (1885) guards the colony's undefended 'back door'."
+   },
+   {
+    "ref": "story:bantry-bay",
+    "note": "The explosives that feed the guns are kept safely up Middle Harbour, in the magazines of Bantry Bay from 1915."
+   },
+   {
+    "ref": "story:harbour-boom-net",
+    "note": "Then war comes home. In 1942 an anti-submarine boom net is strung clear across the harbour, Georges Head to Watsons Bay."
+   },
+   {
+    "ref": "story:midget-submarines",
+    "note": "On the night of 31 May 1942, three Japanese midget submarines slip past it. The war has reached Sydney Harbour."
+   },
+   {
+    "ref": "building:hmas-watson",
+    "note": "And on South Head, the navy's wartime base — now HMAS Watson — trains the warfare officers who keep the watch still."
+   }
+  ],
+  "kind": "theme"
+ },
+ {
+  "id": "taking-to-the-surf",
+  "title": "Sydney Takes to the Surf",
+  "year": "today",
+  "blurb": "How the beach was won — from an illegal daylight swim to the world's first surf lifesavers and a day of disaster.",
+  "stops": [
+   {
+    "ref": "building:mcivers-baths-coogee",
+    "note": "From the 1870s, sea-bathing means sheltered ocean pools cut into the rocks — McIver's at Coogee, a women's and children's bath in use since 1876."
+   },
+   {
+    "ref": "building:dawn-fraser-baths",
+    "note": "In the harbour at Balmain, the tidal baths open in the 1880s — where, generations later, a young Dawn Fraser will learn to swim her way to Olympic gold."
+   },
+   {
+    "ref": "story:manly-gocher",
+    "note": "But the open surf is banned by day as indecent. In 1902–03 at Manly, W. H. Gocher defies the ban and swims at noon — and wins the beach for everyone."
+   },
+   {
+    "ref": "story:wonderland-city",
+    "note": "With the coast suddenly fashionable, in 1906 a vast amusement park — Wonderland City — opens on the clifftops above Tamarama."
+   },
+   {
+    "ref": "story:bondi-slsc",
+    "note": "The open surf is deadly, though. At Bondi in 1907 locals form a club and invent surf lifesaving — the reel, the line and the belt."
+   },
+   {
+    "ref": "building:wylies-baths-coogee",
+    "note": "That same year the champion swimmer Henry Wylie cuts his own ocean baths into the Coogee rocks."
+   },
+   {
+    "ref": "story:coogee-pier",
+    "note": "Between the wars the beach booms. Coogee throws an English pleasure pier out over the surf in 1928."
+   },
+   {
+    "ref": "story:bondi-icebergs",
+    "note": "And the hardiest swimmers form the Bondi Icebergs in 1929, vowing to swim right through the winter."
+   },
+   {
+    "ref": "story:black-sunday",
+    "note": "Then, on 6 February 1938, freak waves drag hundreds out at Bondi. The lifesavers' greatest rescue — yet five are lost. 'Black Sunday'."
+   }
+  ],
+  "kind": "theme"
+ },
+ {
+  "id": "peoples-sydney",
+  "title": "Protest & the People's Sydney",
+  "year": "today",
+  "blurb": "Two centuries of Sydney pushing back — from an armed coup to the Redfern Address.",
+  "stops": [
+   {
+    "ref": "story:rum-rebellion",
+    "note": "1808: the colony's first uprising, when the Rum Corps overthrew Governor Bligh — Sydney's habit of pushing back, born early."
+   },
+   {
+    "ref": "story:eight-hour-day",
+    "note": "1855: stonemasons down tools and win the eight-hour day, one of the world's first — and march to celebrate it every year after."
+   },
+   {
+    "ref": "story:maritime-strike-1890",
+    "note": "1890: the Great Maritime Strike pits unions against employers on the wharves. Its defeat drives workers into politics and the new Labor Party."
+   },
+   {
+    "ref": "story:1917-general-strike",
+    "note": "1917: a new time-card at Eveleigh sparks the Great Strike — some 100,000 walk out across the state, the largest stoppage the country had seen."
+   },
+   {
+    "ref": "story:anti-eviction-riots-1931",
+    "note": "1931: the Depression throws families onto the street. At Newtown and Bankstown the unemployed barricade homes and fight police to stop the evictions."
+   },
+   {
+    "ref": "story:day-of-mourning-1938",
+    "note": "26 January 1938: as the city marks 150 years, Aboriginal leaders gather in protest — the Day of Mourning, a founding moment of the land-rights movement."
+   },
+   {
+    "ref": "story:kellys-bush-green-ban",
+    "note": "1971: Hunters Hill women trying to save a last patch of bush win the world's first 'green ban', as builders' labourers refuse to destroy it."
+   },
+   {
+    "ref": "story:springbok-protest-1971",
+    "note": "That same year, huge crowds besiege the all-white Springbok rugby tour, helping turn Australia against apartheid."
+   },
+   {
+    "ref": "story:first-mardi-gras-1978",
+    "note": "1978: a night march down Oxford Street ends in arrests and beatings — and becomes, in defiance, the first Mardi Gras."
+   },
+   {
+    "ref": "story:redfern-address-1992",
+    "note": "1992: at Redfern Park, Paul Keating tells white Australia the truth of dispossession — 'We took the traditional lands.'"
+   }
+  ],
+  "kind": "theme"
+ },
+ {
+  "id": "healing-city",
+  "title": "The Healing City",
+  "year": "today",
+  "blurb": "How Sydney learned to care for its sick — from a hospital paid for in rum to the women who built their own.",
+  "stops": [
+   {
+    "ref": "story:rum-hospital",
+    "note": "1816: Macquarie builds the colony a hospital, funded by a monopoly on rum. Its central block is the seed of today's Sydney Hospital."
+   },
+   {
+    "ref": "building:quarantine-station",
+    "note": "1832: to keep disease off the arriving ships, the Quarantine Station opens at North Head — a place of fear, and of relief, for new migrants."
+   },
+   {
+    "ref": "story:callan-park",
+    "note": "1878: a kinder idea of care — the asylum at Callan Park, built on the humane 'Kirkbride' plan as a hospital in a garden."
+   },
+   {
+    "ref": "story:rodd-island-pasteur-experiments",
+    "note": "1888: on a tiny harbour island, Louis Pasteur's team tests a microbe to end the rabbit plague — world-class science in Sydney's backyard."
+   },
+   {
+    "ref": "story:crown-st-womens",
+    "note": "1893: the Crown Street Women's Hospital opens, where generations of Sydneysiders will be born."
+   },
+   {
+    "ref": "story:plague-1900",
+    "note": "1900: bubonic plague breaks out by the wharves. The city cleanses and burns The Rocks in panic — and modern public health is born."
+   },
+   {
+    "ref": "building:childrens-hospital-camperdown",
+    "note": "1906: the children's hospital settles at Camperdown, caring for the city's youngest patients."
+   },
+   {
+    "ref": "story:rachel-forster-hospital",
+    "note": "1922: women doctors, long shut out, open the Rachel Forster Hospital — staffed and run by women, for women."
+   }
+  ],
+  "kind": "theme"
+ },
+ {
+  "id": "making-modern-sydney",
+  "title": "Federation to Olympics",
+  "year": "today",
+  "blurb": "The making of the modern city — from the birth of a nation to the best Games ever.",
+  "stops": [
+   {
+    "ref": "story:centennial-park-federation",
+    "note": "1 January 1901: in Centennial Park the colonies become a nation. The Commonwealth of Australia is sworn in, in a Sydney park."
+   },
+   {
+    "ref": "building:harbour-bridge",
+    "note": "1932: after years of labour through the Depression, the Harbour Bridge joins the two shores — the 'Coathanger', the city's defining shape."
+   },
+   {
+    "ref": "story:de-groot-bridge-opening-1932",
+    "note": "At its opening a sword-wielding zealot gallops up and slashes the ribbon before the Premier can — the strangest moment in Sydney's story."
+   },
+   {
+    "ref": "building:luna-park",
+    "note": "1935: across the water beneath the bridge, Luna Park opens its grinning face — mass fun, just for fun."
+   },
+   {
+    "ref": "building:opera-house",
+    "note": "1959–73: at Bennelong Point, Utzon's white sails rise through a saga of genius, politics and resignation — and become the emblem of the nation."
+   },
+   {
+    "ref": "story:darling-harbour",
+    "note": "1988: for the Bicentenary, the worn-out working docks of Darling Harbour are remade as a waterfront playground."
+   },
+   {
+    "ref": "story:sydney-harbour-tunnel",
+    "note": "1992: a second crossing dives beneath the harbour to ease the bridge's load."
+   },
+   {
+    "ref": "story:olympic-park",
+    "note": "2000: on a remediated industrial wasteland at Homebush, Sydney stages the Olympic Games — declared the 'best ever'."
+   },
+   {
+    "ref": "story:sydney-2000-paralympics",
+    "note": "And weeks later the Paralympics, whose sell-out Sydney crowds changed the movement for good."
+   }
+  ],
+  "kind": "time"
+ },
+ {
+  "id": "working-harbour",
+  "title": "The Working Harbour",
+  "year": "today",
+  "blurb": "The harbour that built the city — whales, docks, sugar and coal, before the cargo ships moved on.",
+  "stops": [
+   {
+    "ref": "story:mosman-whaling",
+    "note": "1830s: long before the suburbs, Mosman Bay is a whaling station, boiling down the catch on the harbour's edge."
+   },
+   {
+    "ref": "building:cockatoo-island",
+    "note": "1839: the prison island of Cockatoo becomes a great dockyard, building and mending ships for more than a century."
+   },
+   {
+    "ref": "story:morts-dock-balmain",
+    "note": "1855: at Balmain, Thomas Mort builds Australia's first dry dock — the colony learns to build its own ships."
+   },
+   {
+    "ref": "story:csr-pyrmont",
+    "note": "1878: the Colonial Sugar Refinery rises at Pyrmont — 'sugar town', refining the sweetness of the Pacific."
+   },
+   {
+    "ref": "story:walsh-bay-wharves",
+    "note": "The great finger wharves of Walsh Bay handle the wool and cargo that make Sydney rich."
+   },
+   {
+    "ref": "story:coal-loader",
+    "note": "1920: at Balls Head a giant coal loader fuels the steamers through tunnels cut into the headland."
+   },
+   {
+    "ref": "story:the-hungry-mile",
+    "note": "Along the waterfront, wharfies queue for a day's hire on the 'Hungry Mile' — and in the Depression, for any work at all."
+   },
+   {
+    "ref": "story:darling-harbour",
+    "note": "By the 1980s the container ship has killed the old working harbour, and Darling Harbour's wharves give way to crowds and apartments."
+   }
+  ],
+  "kind": "theme"
+ },
+ {
+  "id": "migrant-sydney",
+  "title": "Migrant Sydney",
+  "year": "today",
+  "blurb": "The waves that remade the city — from gold-rush gardeners to the post-war 'New Australians'.",
+  "stops": [
+   {
+    "ref": "story:chinese-market-gardens",
+    "note": "From the 1850s gold rushes, Chinese diggers shut out of the fields turn to market gardening, feeding the city from plots on its sandy fringe — Sydney's first great non-British community."
+   },
+   {
+    "ref": "story:chinatown",
+    "note": "Pushed about by prejudice, their community shifts west across the city over the decades, settling at last around Dixon Street: the Chinatown that endures today."
+   },
+   {
+    "ref": "story:lebanese-sydney",
+    "note": "In the 1890s, Syrian and Lebanese families — the first Arabic-speaking migrants — build a quarter around Redfern, hawking and trading their way up."
+   },
+   {
+    "ref": "story:maltese-sydney-woolloomooloo",
+    "note": "After the Second World War the floodgates open. The Maltese gather first at Woolloomooloo, by the wharves where their ships came in (from 1948)."
+   },
+   {
+    "ref": "story:bradfield-park-hostel",
+    "note": "The 'New Australians' of the great post-war scheme are housed in Nissen-hut hostels like Bradfield Park, learning a new country in tin sheds."
+   },
+   {
+    "ref": "story:east-hills-migrant-hostel",
+    "note": "At East Hills and a dozen others, displaced Europeans wait out their first Australian years on the city's edge."
+   },
+   {
+    "ref": "story:italian-leichhardt",
+    "note": "As they move out into the suburbs, communities take root: Italians make Leichhardt 'Little Italy', with its espresso bars and delicatessens."
+   },
+   {
+    "ref": "story:greek-marrickville",
+    "note": "Greeks pour into the inner west through the 1950s, turning Marrickville into 'the Athens of the south'."
+   },
+   {
+    "ref": "story:spanish-liverpool-street",
+    "note": "By the 1960s a small Spanish quarter grows on Liverpool Street, around its club and tapas bars."
+   },
+   {
+    "ref": "story:portuguese-petersham",
+    "note": "And the Portuguese make Petersham 'Little Portugal' — its cake shops and charcoal chicken still draw the crowds."
+   }
+  ],
+  "kind": "theme"
+ },
+ {
+  "id": "first-nations-deep-time",
+  "title": "First Nations: Deep Time to Today",
+  "year": "today",
+  "blurb": "The oldest story on the map — sixty thousand years of Country, dispossession and survival, from the rock engravings to the Redfern Address.",
+  "stops": [
+   {
+    "ref": "story:nawi-fishing-women",
+    "note": "For thousands of years Eora women fished the harbour from bark nawi canoes, small fires burning aboard — everyday life on a Country already ancient when the British came."
+   },
+   {
+    "ref": "story:cammeraygal",
+    "note": "On the north shore lived the Cammeraygal, a powerful clan of the coastal Eora; the harbour's peoples were bound together by trade, kinship and law."
+   },
+   {
+    "ref": "story:bondi-engravings",
+    "note": "Across the sandstone they carved their world — at North Bondi, whales and ancestors cut into the headland, part of a sacred landscape made over millennia."
+   },
+   {
+    "ref": "story:warrane-sydney-cove",
+    "note": "26 January 1788: the First Fleet anchors at Warrane. For the Gadigal, it is the day the world begins to change."
+   },
+   {
+    "ref": "person:arabanoo",
+    "note": "1789: Phillip has a Gadigal man, Arabanoo, seized to learn the language. He dies months later in the smallpox that soon devastates the Eora."
+   },
+   {
+    "ref": "person:bennelong",
+    "note": "Bennelong, taken next, becomes the colony's interpreter between two worlds — and gives his name to the point where the Opera House now stands."
+   },
+   {
+    "ref": "person:barangaroo",
+    "note": "His wife Barangaroo refuses the colony entirely — its clothes, its food, its cruelties — a defiance now honoured on the headland named for her."
+   },
+   {
+    "ref": "person:pemulwuy",
+    "note": "From the 1790s the Bidjigal warrior Pemulwuy leads a twelve-year war of resistance against the settlers, until he is shot dead in 1802."
+   },
+   {
+    "ref": "story:appin-massacre-1816",
+    "note": "1816: as the frontier pushes south-west, soldiers drive Dharawal and Gandangara people over the gorge at Appin — a massacre carried out on Macquarie's orders."
+   },
+   {
+    "ref": "story:native-institution-blacktown",
+    "note": "Survivors' children are taken to the 'Native Institution' to be remade; among them Maria Lock fights, in the colony's own courts, to hold her people's land."
+   },
+   {
+    "ref": "story:salt-pan-creek",
+    "note": "Into the 20th century, families pushed off the reserves gather at independent camps like Salt Pan Creek — a seedbed of modern Aboriginal activism."
+   },
+   {
+    "ref": "story:day-of-mourning-1938",
+    "note": "26 January 1938: a century and a half on, Aboriginal leaders declare a Day of Mourning and demand citizenship and rights."
+   },
+   {
+    "ref": "story:the-block",
+    "note": "1973: at Redfern, the Aboriginal Housing Company wins 'the Block' — Aboriginal-owned land in the heart of the city."
+   },
+   {
+    "ref": "story:redfern-address-1992",
+    "note": "1992: at Redfern Park a Prime Minister finally speaks the truth of dispossession — and the oldest story on this map turns toward reckoning."
+   }
+  ],
+  "kind": "time"
+ },
+ {
+  "id": "vanished-sydney",
+  "title": "Vanished Sydney",
+  "year": "today",
+  "blurb": "The grand and the gaudy that Sydney tore down or lost — a tour of landmarks that aren't there any more.",
+  "stops": [
+   {
+    "ref": "story:first-government-house",
+    "note": "1788: the colony's first Government House stood here for half a century, then was demolished — only its footings remain, traced in the pavement."
+   },
+   {
+    "ref": "story:garden-palace",
+    "note": "1879: the soaring, domed Garden Palace dazzled the Exhibition crowds — until it burned to the ground in a single hour in September 1882."
+   },
+   {
+    "ref": "building:australia-hotel",
+    "note": "For seventy years the Australia Hotel was the place to be seen in Sydney — swept away in 1971 for the MLC Centre."
+   },
+   {
+    "ref": "building:anthony-hordern-emporium",
+    "note": "By 1900 Anthony Hordern's 'Palace Emporium' on Brickfield Hill was among the largest shops on earth, under the motto 'While I Live I'll Grow'. A tower stands there now."
+   },
+   {
+    "ref": "story:wonderland-city",
+    "note": "Out at Tamarama, the vast Wonderland City ran from 1906 — its airships, slides and even an elephant now utterly vanished."
+   },
+   {
+    "ref": "story:sydney-glaciarium",
+    "note": "The Glaciarium gave Sydney its first indoor ice from 1907 — skating under one roof, until it melted from the map."
+   },
+   {
+    "ref": "story:sydney-stadium-rushcutters",
+    "note": "The 'Old Tin Shed' at Rushcutters Bay roared with boxing and rock'n'roll for sixty years, until the Eastern Suburbs railway swept it away."
+   },
+   {
+    "ref": "building:mark-foys",
+    "note": "Across the city, Mark Foy's Piazza store drew the crowds in Edwardian splendour; the building survives as a courthouse, but the great emporium is long gone."
+   },
+   {
+    "ref": "story:coogee-pier",
+    "note": "Coogee's English pleasure pier reached out over the surf from 1928 — battered by storms, it was gone within six years."
+   },
+   {
+    "ref": "building:regent-theatre-george-st",
+    "note": "And the Regent, Sydney's grandest picture palace, fell to the wreckers in 1988 — despite a green ban fought to save it."
+   },
+   {
+    "ref": "story:manly-fun-pier",
+    "note": "And at Manly, the Fun Pier met the ferries with dodgems and a giant shark's-mouth doorway, until the wharf was rebuilt in the 1980s."
+   },
+   {
+    "ref": "story:trocadero",
+    "note": "The Trocadero dance palace swept the war years along George Street with its sprung floor — demolished in 1971."
+   }
+  ],
+  "kind": "theme"
+ },
+ {
+  "id": "crime-and-scandal",
+  "title": "Crime & Scandal",
+  "year": "today",
+  "blurb": "Two centuries of the city's darkest headlines — from the first hanging to the bikie massacre.",
+  "stops": [
+   {
+    "ref": "story:thomas-barrett-first-execution",
+    "note": "February 1788, weeks after landing: a teenager, Thomas Barrett, is hanged for stealing food — the colony's first execution."
+   },
+   {
+    "ref": "story:sudds-thompson",
+    "note": "1826: two soldiers commit a crime to escape the army; Governor Darling's brutal punishment kills one of them — and ignites the colony's fight for a free press."
+   },
+   {
+    "ref": "story:george-dean",
+    "note": "1895: a ferry-master is convicted of poisoning his wife, pardoned amid huge public sympathy — then confesses. The 'Lemon Syrup Case' grips the city."
+   },
+   {
+    "ref": "story:eugenia-falleni",
+    "note": "1920: the sensational trial of Eugenia Falleni, who had lived for decades as a man — a case that reveals more about its era than its accused."
+   },
+   {
+    "ref": "person:tilly-devine",
+    "note": "Through the 1920s and '30s the razor gangs run Sydney's vice. Tilly Devine rules the brothels of Darlinghurst..."
+   },
+   {
+    "ref": "person:kate-leigh",
+    "note": "...while her great rival Kate Leigh runs the sly-grog and cocaine. Their war keeps the city's razors busy."
+   },
+   {
+    "ref": "story:shark-arm-case",
+    "note": "1935: a shark at the Coogee aquarium disgorges a human arm — and a tattoo launches Sydney's strangest murder mystery."
+   },
+   {
+    "ref": "story:graeme-thorne",
+    "note": "1960: weeks after his father wins the Opera House lottery, eight-year-old Graeme Thorne is kidnapped and killed — the case that ended an Australian innocence."
+   },
+   {
+    "ref": "story:bogle-chandler-case",
+    "note": "1963: two bodies are found by the Lane Cove River in circumstances no one can explain — the Bogle–Chandler mystery, unsolved to this day."
+   },
+   {
+    "ref": "person:juanita-nielsen",
+    "note": "1975: campaigning publisher Juanita Nielsen vanishes after fighting Kings Cross developers — her body never found."
+   },
+   {
+    "ref": "story:nugan-hand-bank",
+    "note": "1980: the Nugan Hand merchant bank collapses amid drugs, arms-dealing and spies — a scandal that reached all the way to the CIA."
+   },
+   {
+    "ref": "story:milperra-massacre",
+    "note": "1984: a Father's Day swap-meet at Milperra erupts into a bikie gun battle that leaves seven dead — and rewrites the gun laws."
+   }
+  ],
+  "kind": "theme"
+ },
+ {
+  "id": "modern-sydney",
+  "title": "Modern Sydney: 1900 to Today",
+  "year": "today",
+  "blurb": "The twentieth-century city, in order — Federation, the Bridge, the war, the Opera House and the Games.",
+  "stops": [
+   {
+    "ref": "story:centennial-park-federation",
+    "note": "1 January 1901: in Centennial Park the colonies federate. The Commonwealth of Australia is born, and Sydney enters the new century as a state capital."
+   },
+   {
+    "ref": "story:anti-eviction-riots-1931",
+    "note": "The boom doesn't last. In the 1931 Depression, families thrown out of their homes barricade the doors and fight the police across the inner suburbs."
+   },
+   {
+    "ref": "building:harbour-bridge",
+    "note": "1932: through the worst of it, the Harbour Bridge is finished — the 'Coathanger' that joins the city and lifts its spirits."
+   },
+   {
+    "ref": "story:de-groot-bridge-opening-1932",
+    "note": "At its opening a sword-wielding zealot gallops up and slashes the ribbon before the Premier can — the strangest moment in the city's story."
+   },
+   {
+    "ref": "building:luna-park",
+    "note": "1935: across the water beneath the bridge, Luna Park opens its grinning face. Just for fun."
+   },
+   {
+    "ref": "story:midget-submarines",
+    "note": "31 May 1942: the war reaches home as three Japanese midget submarines slip into the harbour by night."
+   },
+   {
+    "ref": "story:first-television-tcn9",
+    "note": "1956: 'Welcome to television.' From a studio at Willoughby, TCN-9 brings the flickering future into Sydney's living rooms."
+   },
+   {
+    "ref": "story:kellys-bush-green-ban",
+    "note": "1971: a fight to save a last patch of bush at Hunters Hill invents the 'green ban' — workers refusing to wreck the city."
+   },
+   {
+    "ref": "building:opera-house",
+    "note": "1973: after sixteen years of genius and scandal, Utzon's sails open at Bennelong Point — and the world learns Sydney's face."
+   },
+   {
+    "ref": "story:sydney-monorail",
+    "note": "1988: for the Bicentenary the monorail loops the city centre — a future that never quite arrived, and was pulled down in 2013."
+   },
+   {
+    "ref": "story:darling-harbour",
+    "note": "The same year the worn-out docks of Darling Harbour reopen as a waterfront of crowds and concrete."
+   },
+   {
+    "ref": "story:olympic-park",
+    "note": "2000: on a cleaned-up industrial wasteland at Homebush, Sydney stages the Olympic Games — its grand debut to the new millennium."
+   }
+  ],
+  "kind": "time"
+ },
+ {
+  "id": "women-who-made-sydney",
+  "title": "Women Who Made Sydney",
+  "year": "today",
+  "blurb": "From an Eora fisherwoman to a UN delegate — the women who shaped the city, in their turn.",
+  "stops": [
+   {
+    "ref": "person:barangaroo",
+    "note": "1790s: the Cammeraygal fisherwoman Barangaroo refuses the colony entirely — its clothes, its food, its cruelties — the first woman on this map to say no to it."
+   },
+   {
+    "ref": "person:mary-reibey",
+    "note": "1810s: transported at thirteen for horse theft, Mary Reibey builds a trading and property empire to become the colony's merchant queen — and the face of the $20 note."
+   },
+   {
+    "ref": "person:maria-lock",
+    "note": "1820s: a Darug woman raised in the Native Institution, Maria Lock fights through the colony's own courts to hold her family's land."
+   },
+   {
+    "ref": "person:caroline-chisholm",
+    "note": "1840s: Caroline Chisholm meets the migrant ships and shelters thousands of single women, shaming the colony into caring for its newcomers."
+   },
+   {
+    "ref": "person:mary-mackillop",
+    "note": "From 1866, Mary MacKillop builds the Sisters of St Joseph and schools for the poor — excommunicated in her day, later made Australia's first saint."
+   },
+   {
+    "ref": "person:louisa-lawson",
+    "note": "1888: Louisa Lawson founds The Dawn, a journal written and printed by women, and helps lead the fight for the vote."
+   },
+   {
+    "ref": "person:rose-scott",
+    "note": "Through the 1890s, from her Woollahra salon, Rose Scott drives the suffrage campaign that wins NSW women the vote in 1902."
+   },
+   {
+    "ref": "person:dorothea-mackellar",
+    "note": "1908: a young Sydney woman, Dorothea Mackellar, gives the country its best-loved poem — 'I love a sunburnt country'."
+   },
+   {
+    "ref": "person:lillian-armfield",
+    "note": "1915: Lillian Armfield becomes one of Australia's first policewomen, and for decades takes on the razor gangs of the underworld."
+   },
+   {
+    "ref": "person:margaret-preston",
+    "note": "1920s: from Mosman, the modernist Margaret Preston puts native wildflowers — and a call for a truly Australian art — at the centre of the canvas."
+   },
+   {
+    "ref": "person:millicent-preston-stanley",
+    "note": "1925: Millicent Preston-Stanley becomes the first woman elected to the NSW Parliament, championing women's and children's health."
+   },
+   {
+    "ref": "person:kate-leigh",
+    "note": "The underworld has its queens too: Kate Leigh runs the sly-grog and cocaine of Surry Hills..."
+   },
+   {
+    "ref": "person:tilly-devine",
+    "note": "...and her bitter rival Tilly Devine the brothels of Darlinghurst — two women ruling Sydney's vice through the razor years."
+   },
+   {
+    "ref": "person:jessie-street",
+    "note": "1945: Jessie Street, the only woman in Australia's delegation, helps write women's rights into the founding charter of the United Nations."
+   }
+  ],
+  "kind": "theme"
+ },
+ {
+  "id": "on-the-move",
+  "title": "On the Move: Trains, Trams & Ferries",
+  "year": "today",
+  "blurb": "How Sydney got around — from the first steam train to the tunnels, ghost lines and the monorail that didn't last.",
+  "stops": [
+   {
+    "ref": "story:first-railway",
+    "note": "1855: the first train steams from Sydney to Parramatta — the colony enters the railway age."
+   },
+   {
+    "ref": "building:mortuary-station",
+    "note": "1869: a Gothic 'mortuary station' beside Central sends Sydney's dead out to Rookwood by funeral train."
+   },
+   {
+    "ref": "building:pyrmont-bridge",
+    "note": "1902: the Pyrmont swing bridge opens across Darling Harbour — among the first electrically-operated swing spans in the world."
+   },
+   {
+    "ref": "story:ghost-railway",
+    "note": "The Northern Beaches are promised trains for a century, and bridges built ready — but the line never comes."
+   },
+   {
+    "ref": "story:st-james-tunnels",
+    "note": "1926: the City Circle is dug beneath the streets; unfinished tunnels at St James fill with water — an underground lake to this day."
+   },
+   {
+    "ref": "building:harbour-bridge",
+    "note": "1932: the Harbour Bridge carries road, rail and tram across the water in a single leap."
+   },
+   {
+    "ref": "story:wynyard-tram-tunnels",
+    "note": "Beneath Wynyard, platforms built for the bridge's trams are abandoned when the trams are scrapped — ghost stations under the city."
+   },
+   {
+    "ref": "story:manly-ferry",
+    "note": "On the water, the tradition that needs no track: the Manly ferry, 'seven miles from Sydney and a thousand miles from care'."
+   },
+   {
+    "ref": "story:cahill-expressway",
+    "note": "1958: the Cahill Expressway throws an elevated road across Circular Quay — loved and loathed ever since."
+   },
+   {
+    "ref": "story:eastern-suburbs-railway",
+    "note": "1979: after nearly a century of plans, the Eastern Suburbs Railway finally reaches Bondi Junction."
+   },
+   {
+    "ref": "story:sydney-monorail",
+    "note": "1988: the Bicentennial monorail loops Darling Harbour — a future that never caught on, torn down in 2013."
+   },
+   {
+    "ref": "story:sydney-harbour-tunnel",
+    "note": "1992: a road tunnel dives beneath the harbour to take the load off the bridge."
+   },
+   {
+    "ref": "building:anzac-bridge",
+    "note": "1995: the cable-stayed Anzac Bridge soars over Johnstons Bay — the city's newest landmark crossing."
+   }
+  ],
+  "kind": "theme"
+ },
+ {
+  "id": "sydney-on-stage",
+  "title": "Sydney on Stage",
+  "year": "today",
+  "blurb": "A century of footlights — the playhouses, picture palaces and dance halls that lit up the city.",
+  "stops": [
+   {
+    "ref": "story:criterion-theatre",
+    "note": "1886: 'the Cri' opens on Pitt Street, a thousand-seat playhouse for opera and melodrama."
+   },
+   {
+    "ref": "building:her-majestys-theatre-sydney",
+    "note": "1887: Her Majesty's brings grand musical theatre to town — and will twice burn down and rise again."
+   },
+   {
+    "ref": "person:nellie-stewart",
+    "note": "Through the 1890s, Sydney's own Nellie Stewart reigns as queen of the colonial stage — 'Sweet Nell'."
+   },
+   {
+    "ref": "story:tivoli-theatre-vaudeville",
+    "note": "1893: the Tivoli becomes the home of vaudeville — variety, comedy and showgirls for half a century."
+   },
+   {
+    "ref": "story:prince-edward-theatre",
+    "note": "1924: the Prince Edward, 'the theatre beautiful', ushers in the picture-palace age."
+   },
+   {
+    "ref": "building:capitol-theatre",
+    "note": "1928: the Capitol opens in Haymarket as an atmospheric picture palace, stars twinkling in its ceiling."
+   },
+   {
+    "ref": "building:regent-theatre-george-st",
+    "note": "The same year the Regent on George Street becomes the city's grandest cinema."
+   },
+   {
+    "ref": "building:state-theatre",
+    "note": "1929: the State Theatre out-dazzles them all — a Gothic-Baroque palace of marble and crystal."
+   },
+   {
+    "ref": "story:trocadero",
+    "note": "1936: the Trocadero brings the dance-hall age, its sprung floor swinging right through the war."
+   },
+   {
+    "ref": "building:theatre-royal-sydney",
+    "note": "1976: the Theatre Royal reopens inside the new MLC Centre, carrying the city's oldest theatrical name into the modern age."
+   }
+  ],
+  "kind": "theme"
+ },
+ {
+  "id": "grand-houses",
+  "title": "Sydney's Grand Houses",
+  "year": "today",
+  "blurb": "The mansions of the colonial and Victorian rich — from Wentworth's Vaucluse to a Spanish-Mission fortune on Elizabeth Bay.",
+  "stops": [
+   {
+    "ref": "building:vaucluse-house",
+    "note": "1827: W. C. Wentworth's battlemented Vaucluse House, harbourside seat of the colony's most powerful native-born family."
+   },
+   {
+    "ref": "building:camden-park-estate",
+    "note": "1835: out on the Cowpastures, the Macarthurs build Camden Park — grand house of the family that founded the wool industry."
+   },
+   {
+    "ref": "building:tusculum-potts-point",
+    "note": "1837: John Verge's elegant Tusculum, one of the villas that made fashionable Potts Point."
+   },
+   {
+    "ref": "building:lyndhurst-glebe",
+    "note": "Verge's Lyndhurst at Glebe rises the same year — a Greek Revival gem later nearly lost to a freeway."
+   },
+   {
+    "ref": "building:elizabeth-bay-house",
+    "note": "1839: Alexander Macleay's Elizabeth Bay House, 'the finest house in the colony', with its famous oval saloon and stair."
+   },
+   {
+    "ref": "building:fernhill-mulgoa",
+    "note": "1840s: at Mulgoa, the sandstone grandeur of Fernhill, heart of a great pastoral estate."
+   },
+   {
+    "ref": "building:strickland-house",
+    "note": "1856: the Italianate Strickland House looks out over the harbour at Vaucluse."
+   },
+   {
+    "ref": "building:hughenden-woollahra",
+    "note": "1876: Hughenden, a Victorian mansion at Woollahra, later reborn as a grand hotel."
+   },
+   {
+    "ref": "building:swifts-darling-point",
+    "note": "1882: the castellated Swifts at Darling Point — a brewer's fairy-tale castle on the harbour."
+   },
+   {
+    "ref": "building:caerleon-bellevue-hill",
+    "note": "1885: Caerleon at Bellevue Hill, among the first of the great Queen Anne mansions in Australia."
+   },
+   {
+    "ref": "story:boomerang-elizabeth-bay",
+    "note": "1926: and the lavish Spanish-Mission 'Boomerang' on Elizabeth Bay, built on a music fortune — long one of Sydney's most valuable homes."
+   }
+  ],
+  "kind": "theme"
+ }
+]
