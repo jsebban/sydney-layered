@@ -5648,5 +5648,92 @@
     ]
    }
   ]
+ },
+ {
+  "id": "rose-bay-flying-boats",
+  "anchor": "story:rose-bay-flying-boats",
+  "title": "Rose Bay: Australia's First International Airport",
+  "chapters": [
+   {
+    "ref": "story:rose-bay-flying-boats"
+   },
+   {
+    "heading": "Flying Boats: A Technological Marvel",
+    "body": [
+     "Flying boats came to Sydney Harbour in January 1937 when Australia agreed to participate in the Empire Air Mail Scheme (EAMS). It was decided that Rose Bay would become the terminus of the United Kingdom to Australia airmail route and Australia's first international airport for flying boats. The only suggested alternative was Botany Bay, but a large breakwater would have had to been built to provided the calm waters required to land. Rose Bay was naturally sheltered, and so in May 1938, Qantas Empire Airways shifted its operations to Sydney. The flying boats quickly evolved to carry passengers, and the first full service to Southampton left on 5 July that year. The base was officially opened a month later, on 4 August.  "
+    ],
+    "images": [
+     {
+      "url": "https://dictionaryofsydney.org/sites/default/files/media/dc7c0bac758697f3b0d142e954afb7dae92b32b9.jpg",
+      "caption": " Empire Class Flying Boats carried mail and passengers in style from Sydney to London in 1938-1939",
+      "link": ""
+     },
+     {
+      "url": "https://dictionaryofsydney.org/sites/default/files/media/fadb90aa21684f3672a42d85bd28208edd0e807a.jpg",
+      "caption": "Construction of hanger for flying boats, Rose Bay June 1939",
+      "link": ""
+     },
+     {
+      "url": "https://dictionaryofsydney.org/sites/default/files/media/583a26465af1eae46f7e675fcb7e317de10e3fa5.jpg",
+      "caption": "Lord Huntingfield opens flying boat service, Rose Bay 4 August 1938",
+      "link": ""
+     }
+    ]
+   },
+   {
+    "heading": "The Kangaroo Route",
+    "body": [
+     "Passengers travelled in genuine comfort, island-hopping up the coast and across Asia, the Middle East and Europe with around thirty stops along the way. The trip to London took about ten days, and the route soon earned the name that stuck to it for decades, the Kangaroo Route. There were fifteen passenger seats, an air crew of two and a cabin crew of three to service the flight. "
+    ],
+    "images": [
+     {
+      "url": "https://dictionaryofsydney.org/sites/default/files/media/598cd4b47c5ae133a5d2ab5b42528fb654c8b080.jpg",
+      "caption": "Gateway to the world - Rose Bay flying boat base 1939",
+      "link": ""
+     },
+     {
+      "url": "https://dictionaryofsydney.org/sites/default/files/media/5f86f95a266d04575e872144404a7c332a48ec30.jpg",
+      "caption": "Spacious cabins on board Qantas flying boats",
+      "link": ""
+     },
+     {
+      "url": "https://dictionaryofsydney.org/sites/default/files/media/b02931add0cb18b861507efc43b86745e1707462.jpg",
+      "caption": " Imperial Airways inflight menu for the RMA Coorong flying between Brisbane and Sydney 12 July 1938",
+      "link": ""
+     }
+    ]
+   },
+   {
+    "heading": "Flying Boats in the War",
+    "body": [
+     "The onset of World War II saw services increasingly disrupted, and the flying boats were used by the RAAF to support the war effort, carrying supplies and providing reconnaissance. Two weeks after World War II ended, on 16 September 1945, nine Catalina flying boats landed at Rose Bay, repatriating Australian prisoner of war survivors from Japanese camps. They were greeted by 50,000 spectators, and hundreds of small boats were there to meet the returned POWs."
+    ],
+    "images": [
+     {
+      "url": "https://dictionaryofsydney.org/sites/default/files/media/cc40a54292dea1a157b9babdcc21eccdc73631e5.jpg",
+      "caption": "Australian prisoners-of-war returning home. Released Eighth Division men coming ashore by barge from the catalinas at Rose Bay 16 September 1945",
+      "link": ""
+     }
+    ]
+   },
+   {
+    "heading": "A Quiet Decline",
+    "body": [
+     "Flights to London resumed on 18 May 1946, famous for their luxury. In 1947 a return flight to Australia from England cost more than one hundred times the average annual wage. The advent of jet airliners in the 1950s saw the decline of the flying boats, although they did keep providing services to Lord Howe Island until 1974. The sightseeing seaplanes that still take off from the bay today are the last working trace of that age."
+    ],
+    "images": [
+     {
+      "url": "https://dictionaryofsydney.org/sites/default/files/media/1e8c31f76b8e019d31aa6225ea7677ed9c5473f9.jpg",
+      "caption": "Ansett advertisement for Hayman Island 'swift flying boats can whisk you there in a matter of hours' March 1952",
+      "link": ""
+     },
+     {
+      "url": "https://www.visitsydneyaustralia.com.au/images/Rose-Bay-today.jpg",
+      "caption": "The sightseeing seaplanes of Rose Bay today",
+      "link": ""
+     }
+    ]
+   }
+  ]
  }
 ]
