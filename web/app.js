@@ -747,9 +747,20 @@ function inlineMd(s) {
   s = s.replace(/(^|[^\w])_(?!\s)([^_\n]+?)_(?![\w])/g, "$1<em>$2</em>");
   return s;
 }
+// Map-click features arrive with nested props as JSON strings; un-stringify to an array.
+function asArray(v) {
+  if (Array.isArray(v)) return v;
+  if (typeof v === "string") {
+    const t = v.trim();
+    if (t.startsWith("[")) { try { return JSON.parse(t); } catch (e) {} }
+    return t ? [v] : [];
+  }
+  return v ? [v] : [];
+}
 // Normalise a chapter/feature's images to [{url,caption,link}] (supports the old single-image fields).
 function mediaList(o) {
-  if (Array.isArray(o.images)) return o.images.filter((m) => m && m.url);
+  const imgs = asArray(o.images);
+  if (imgs.length && typeof imgs[0] === "object") return imgs.filter((m) => m && m.url);
   if (o.image) return [{ url: o.image, caption: o.image_caption, link: o.image_link }];
   return [];
 }
@@ -1490,7 +1501,7 @@ function showStory(feature) {
   openDetail(`
     ${mediaHtml(mediaList(p))}
     <h3>${p.title}</h3>
-    ${(Array.isArray(p.body) ? p.body : [p.body]).map((x) => `<p>${inlineMd(x)}</p>`).join("")}
+    ${asArray(p.body).map((x) => `<p>${inlineMd(x)}</p>`).join("")}
     ${detailPapers(p)}
     ${relatedHtml(`story:${p.id}`)}
     <span class="source">Sources: ${p.source}</span>`);
