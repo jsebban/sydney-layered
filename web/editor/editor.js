@@ -163,7 +163,9 @@ function selectItem(key) {
   note.addEventListener("input", () => setReview(it.key, { note: note.value }));
   form.append(el("div", { class: "reviewbar" }, [el("label", {}, [chk, " Reviewed"]), note,
     el("span", { class: "muted", style: "font-size:12px" }, it.key),
-    it.type === "dossier" ? el("button", { type: "button", class: "danger", onclick: () => deleteDossier(it.key) }, "Delete deep dive") : null]));
+    it.type === "dossier"
+      ? el("button", { type: "button", class: "danger", onclick: () => deleteDossier(it.key) }, "Delete deep dive")
+      : el("button", { type: "button", class: "danger", onclick: () => deleteFeature(it.key) }, "Delete pin")]));
 
   for (const [k, label, kind] of SCHEMA[it.type]) form.append(buildField(it, k, label, kind));
   refreshSide();
@@ -192,6 +194,30 @@ function deleteDossier(key) {
   markDirty(); renderTabs(); renderList();
   $("#editor").hidden = true; $("#empty").hidden = false; $("#side-pane").hidden = true;
   toast("Deep dive deleted — click Save to confirm.");
+}
+
+function deleteFeature(key) {
+  const it = COL[activeTab].items.find((i) => i.key === key);
+  if (!it) return;
+  const id = key.split(":")[1];
+  // warn if a deep dive anchors or references this pin
+  const refs = [];
+  for (const d of (COL.dossiers ? COL.dossiers.raw : [])) {
+    if (d.anchor === key) refs.push(`anchors the deep dive "${d.title || d.id}"`);
+    for (const ch of d.chapters || []) if (ch.ref === key) refs.push(`is a chapter in "${d.title || d.id}"`);
+  }
+  let msg = `Delete the pin "${it.name}" (${key})?\nThis removes it from the map. Save to confirm.`;
+  if (refs.length) msg += `\n\n⚠ It also ${refs.join("; ")}. Those will break unless you fix them.`;
+  if (!window.confirm(msg)) return;
+  const col = COL[activeTab];
+  const fi = col.raw.features.findIndex((f) => f.properties.id === id);
+  if (fi >= 0) col.raw.features.splice(fi, 1);
+  const ii = col.items.findIndex((i) => i.key === key);
+  if (ii >= 0) col.items.splice(ii, 1);
+  activeKey = null;
+  markDirty(); renderTabs(); renderList();
+  $("#editor").hidden = true; $("#empty").hidden = false; $("#side-pane").hidden = true;
+  toast(`Deleted "${it.name}" — click Save to confirm.`);
 }
 
 // Reusable multi-image editor (url + upload + caption + credit, reorder/remove).
