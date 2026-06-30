@@ -1,0 +1,16 @@
+{
+  "name": "Sydney, Layered",
+  "short_name": "Sydney Layered",
+  "description": "An interactive history of Sydney — explore the people, places and stories near you.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1f1b16",
+  "theme_color": "#1f1b16",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

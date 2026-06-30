@@ -1214,3 +1214,28 @@ body.credits-open #legend { bottom: calc(1rem + var(--credits-h, 80px)); }
 @media (max-width: 768px) {
   #credits-panel { left: 0; }
 }
+
+/* --- Geolocation: Near me button, nearby list, proximity toast --- */
+#nearme-btn {
+  position: fixed; z-index: 25; left: 0.8rem; bottom: 0.9rem;
+  font-family: inherit; font-size: 0.85rem; font-weight: bold;
+  color: #f7f3ec; background: var(--accent2, #2a6f6b); border: none;
+  border-radius: 999px; padding: 0.6rem 1rem; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+#nearme-btn.locating { opacity: 0.6; }
+#story-detail .near-h { margin: 0.8rem 0 0.3rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: #8a7a64; }
+.near-list { list-style: none; margin: 0 0 0.4rem; padding: 0; }
+.near-item { display: flex; align-items: baseline; gap: 0.6rem; padding: 0.5rem 0.2rem; border-bottom: 1px solid #efeae0; cursor: pointer; }
+.near-item:hover { background: #faf7f0; }
+.near-item .near-d { flex: 0 0 auto; min-width: 3.4rem; color: var(--accent2, #2a6f6b); font-variant-numeric: tabular-nums; font-weight: 600; font-size: 0.85rem; }
+.near-item .near-nm { flex: 1; }
+.near-item .near-ty { flex: 0 0 auto; font-size: 0.72rem; color: #8a7a64; }
+.near-item.near-tour .near-ty { color: var(--accent); font-weight: 600; }
+#geo-toast {
+  position: fixed; bottom: 4.2rem; left: 50%; transform: translateX(-50%);
+  background: #1f1b16; color: #fff; padding: 0.6rem 1rem; border-radius: 0.5rem;
+  font-size: 0.9rem; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 60;
+}
+#geo-toast.show { opacity: 1; }
+@media (max-width: 768px) { #nearme-btn { bottom: 1rem; } }

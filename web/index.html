@@ -2,10 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Sydney, Layered — an interactive history of Sydney</title>
   <link href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css" rel="stylesheet" />
-  <link href="style.css?v=20260624zc" rel="stylesheet" />
+  <link href="style.css?v=20260630a" rel="stylesheet" />
+  <!-- PWA / install on iPhone -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#1f1b16" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Sydney, Layered" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png" />
 </head>
 <body>
   <aside id="sidebar">
@@ -106,6 +114,12 @@
   <div id="boot" role="status">Mapping Sydney…</div>
 
   <script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
-  <script src="app.js?v=20260624zc"></script>
+  <script src="app.js?v=20260630a"></script>
+  <script src="geo.js?v=20260630a"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+    }
+  </script>
 </body>
 </html>
