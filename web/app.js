@@ -253,7 +253,7 @@ const map = new maplibregl.Map({
   },
 });
 
-map.addControl(new maplibregl.NavigationControl(), "top-right");
+// (zoom/compass controls removed — touch pinch-zoom + the Explore/Near me UI cover navigation)
 
 // Unified pin click: query a PADDED box around the tap (bigger on touch) so
 // pins are easy to hit, then open the nearest one. Tapping empty closes the
