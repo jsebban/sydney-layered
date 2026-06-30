@@ -1239,3 +1239,19 @@ body.credits-open #legend { bottom: calc(1rem + var(--credits-h, 80px)); }
 }
 #geo-toast.show { opacity: 1; }
 @media (max-width: 768px) { #nearme-btn { bottom: 1rem; } }
+
+/* --- iOS safe areas (PWA standalone) + bottom control layout --- */
+/* Keep map controls + ⓘ clear of the status bar (time/battery) */
+.maplibregl-ctrl-top-right, .maplibregl-ctrl-top-left { top: env(safe-area-inset-top, 0px); }
+#attrib-btn { top: calc(0.6rem + env(safe-area-inset-top, 0px)); }
+/* Keep bottom buttons clear of the home indicator */
+#sidebar-toggle { bottom: calc(0.9rem + env(safe-area-inset-bottom, 0px)); }
+#nearme-btn { bottom: calc(0.9rem + env(safe-area-inset-bottom, 0px)); }
+/* Desktop already has the sidebar + locate control, so the pill isn't needed there */
+@media (min-width: 769px) { #nearme-btn { display: none; } }
+/* On phones: float the legend above the Near me pill so they don't overlap, and
+   hide both pills while the bottom sheet is open */
+@media (max-width: 768px) {
+  #legend { bottom: calc(4rem + env(safe-area-inset-bottom, 0px)); }
+  #sidebar.open ~ #nearme-btn { display: none; }
+}
