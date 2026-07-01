@@ -1019,7 +1019,7 @@ section > h2 {
 /* --- Mobile: sidebar becomes a bottom sheet over a full-screen map --- */
 @media (max-width: 768px) {
   body { display: block; height: 100dvh; }
-  #map { position: absolute; inset: 0; }
+  #map { position: fixed; inset: 0; height: 100%; }
   #sidebar {
     position: fixed;
     left: 0;
@@ -1156,19 +1156,19 @@ section > h2 {
 /* --- Map credits (custom ⓘ + slide-up panel) --- */
 #attrib-btn {
   position: fixed;
-  z-index: 25;
-  top: 1rem;
-  left: 12px;
-  width: 2rem;
-  height: 2rem;
+  z-index: 26;
+  top: calc(0.5rem + env(safe-area-inset-top, 0px));
+  right: 0.6rem;
+  width: 1.5rem;
+  height: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
   border-radius: 50%;
-  background: rgba(43, 33, 24, 0.72);
+  background: rgba(43, 33, 24, 0.6);
   color: #f7f3ec;
-  font-size: 1.05rem;
+  font-size: 0.8rem;
   line-height: 1;
   cursor: pointer;
 }
@@ -1246,11 +1246,18 @@ body.credits-open #legend { bottom: calc(1rem + var(--credits-h, 80px)); }
 /* Hide the leftover MapLibre control (locate button) — the GPS dot still renders,
    and "Near me" triggers location. Zoom/compass were removed in app.js. */
 .maplibregl-ctrl-top-right { display: none; }
-/* Keep ⓘ clear of the status bar (time/battery) */
-#attrib-btn { top: calc(0.6rem + env(safe-area-inset-top, 0px)); }
-/* Keep bottom buttons clear of the home indicator and on top so they always tap */
-#sidebar-toggle { bottom: calc(0.9rem + env(safe-area-inset-bottom, 0px)); z-index: 50; }
-#nearme-btn { bottom: calc(0.9rem + env(safe-area-inset-bottom, 0px)); z-index: 50; }
+/* Bottom buttons sit just above the bottom edge (clear of the home indicator) and on top */
+#sidebar-toggle { bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px)); z-index: 50; }
+#nearme-btn { bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px)); z-index: 50; }
+/* Key sits top-left, below the status bar */
+@media (max-width: 768px) {
+  #legend {
+    top: calc(0.5rem + env(safe-area-inset-top, 0px));
+    left: 0.6rem;
+    bottom: auto;
+    max-width: 60vw;
+  }
+}
 /* Desktop already has the sidebar + locate control, so the pill isn't needed there */
 @media (min-width: 769px) { #nearme-btn { display: none; } }
 /* On phones: float the legend above the Near me pill so they don't overlap, and
