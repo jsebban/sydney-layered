@@ -269,51 +269,40 @@ map.on("load", () => { fitMap(); [200, 500, 1200, 2500].forEach((t) => setTimeou
 document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(fitMap, 100); });
 window.addEventListener("pageshow", () => setTimeout(fitMap, 100));
 
-// WebKit clips the WebGL map at the home-indicator safe-area boundary in
-// standalone PWAs, so the map itself can't paint that strip — but ordinary DOM
-// elements CAN. So we render the map's bottom edge as an <img>-like DOM element
-// (#safe-fill) that sits in the strip, plus set the page background to the
-// bottom-edge colour as an ultimate fallback. Refreshed whenever the map settles.
-const safeFill = document.createElement("div");
-safeFill.id = "safe-fill";
-document.body.appendChild(safeFill);
-const _slice = document.createElement("canvas");
+// Colour fallback (sits BEHIND the map): set the page background to the map's
+// bottom-edge colour so if any safe-area strip ever shows, it blends with the
+// map rather than showing black. The live full-bleed fill is handled by the
+// scroll-pin below; this is just insurance.
 const _one = document.createElement("canvas");
 _one.width = 1; _one.height = 1;
 const _octx = _one.getContext("2d");
-function paintSafeArea() {
+function matchSafeAreaColor() {
   try {
     const c = map.getCanvas();
     if (!c || !c.width) return;
-    const dpr = window.devicePixelRatio || 1;
-    const sh = Math.min(c.height, Math.round(70 * dpr)); // bottom 70 css px of map
-    if (sh <= 0) return;
-    _slice.width = c.width; _slice.height = sh;
-    const sctx = _slice.getContext("2d");
-    sctx.drawImage(c, 0, c.height - sh, c.width, sh, 0, 0, c.width, sh);
-    safeFill.style.backgroundImage = "url(" + _slice.toDataURL() + ")";
-    // Ultimate fallback: page background = bottom-edge colour.
     _octx.drawImage(c, 0, c.height - 6, c.width, 6, 0, 0, 1, 1);
     const d = _octx.getImageData(0, 0, 1, 1).data;
-    if (d[3] !== 0) {
-      const col = `rgb(${d[0]}, ${d[1]}, ${d[2]})`;
-      document.documentElement.style.background = col;
-      document.body.style.background = col;
-      const tc = document.querySelector('meta[name="theme-color"]');
-      if (tc) tc.setAttribute("content", col);
-    }
+    if (d[3] === 0) return;
+    const col = `rgb(${d[0]}, ${d[1]}, ${d[2]})`;
+    document.documentElement.style.background = col;
+    document.body.style.background = col;
+    const tc = document.querySelector('meta[name="theme-color"]');
+    if (tc) tc.setAttribute("content", col);
   } catch (e) { /* readback blocked — leave the default dark background */ }
 }
-map.on("idle", paintSafeArea);
-map.on("moveend", paintSafeArea);
-map.on("load", () => setTimeout(paintSafeArea, 600));
+map.on("idle", matchSafeAreaColor);
+map.on("load", () => setTimeout(matchSafeAreaColor, 600));
 
-// iOS only collapses the bottom safe-area gap once the page has scrolled, so
-// nudge it into the scrolled (full-bleed) state on launch and after it settles.
-function engageImmersive() { window.scrollTo(0, 60); setTimeout(fitMap, 60); }
-window.addEventListener("load", () => [100, 400, 900, 1800].forEach((t) => setTimeout(engageImmersive, t)));
+// iOS only collapses the bottom safe-area gap once the page has scrolled, and it
+// springs back to the top on its own. So PIN the page at a small scroll offset:
+// nudge it there on launch, and re-assert whenever iOS tries to reset it. This
+// keeps the fixed map filling live to the very bottom edge (no snapshot lag).
+const SCROLL_TARGET = 80;
+function engageImmersive() { window.scrollTo(0, SCROLL_TARGET); }
+window.addEventListener("load", () => [80, 300, 700, 1400].forEach((t) => setTimeout(engageImmersive, t)));
 window.addEventListener("orientationchange", () => setTimeout(engageImmersive, 400));
 document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(engageImmersive, 150); });
+window.addEventListener("scroll", () => { if (window.scrollY < SCROLL_TARGET - 6) engageImmersive(); }, { passive: true });
 
 // Unified pin click: query a PADDED box around the tap (bigger on touch) so
 // pins are easy to hit, then open the nearest one. Tapping empty closes the

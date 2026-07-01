@@ -1022,7 +1022,7 @@ section > h2 {
      full-bleed (safe-area-collapsed) mode once the page can scroll; app.js then
      nudges it into that scrolled state so the fixed map fills to the bottom. */
   html { height: 100%; overflow-y: scroll; -webkit-overflow-scrolling: touch; }
-  body { display: block; min-height: calc(100dvh + 60px); }
+  body { display: block; min-height: calc(100dvh + 140px); }
   /* 100vh is the LARGE viewport (full physical screen, 852px) vs 100dvh which
      iOS caps at the safe box (793px). Pin to the top and OVERSHOOT the bottom a
      little so the map always covers the home-indicator strip with margin to
@@ -1034,22 +1034,6 @@ section > h2 {
     right: 0;
     bottom: auto;
     height: calc(100vh + env(safe-area-inset-bottom, 0px) + 12px);
-  }
-  /* WebKit clips the WebGL map at the home-indicator safe-area boundary, so the
-     map can't paint that strip. #safe-fill is a plain DOM element (which CAN
-     paint there) showing a snapshot of the map's bottom edge — see app.js
-     paintSafeArea(). It sits over the strip and continues the map seamlessly. */
-  #safe-fill {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: calc(env(safe-area-inset-bottom, 0px) + 2px);
-    background-size: 100% auto;
-    background-position: center bottom;
-    background-repeat: no-repeat;
-    z-index: 1;
-    pointer-events: none;
   }
   #sidebar {
     position: fixed;
