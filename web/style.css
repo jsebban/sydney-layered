@@ -1107,23 +1107,47 @@ section > h2 {
 #lightbox.zoomed .lb-img { max-width: none; max-height: none; width: 200%; cursor: zoom-out; }
 .lb-close {
   position: fixed;
-  top: 0.9rem;
-  right: 0.9rem;
-  z-index: 2;
-  width: 2.4rem;
-  height: 2.4rem;
+  top: calc(0.6rem + env(safe-area-inset-top, 0px));
+  right: 0.8rem;
+  z-index: 5;
+  width: 2.6rem;
+  height: 2.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   border-radius: 50%;
-  background: rgba(247, 243, 236, 0.92);
+  background: rgba(247, 243, 236, 0.95);
   color: #2b2118;
-  font-size: 1.2rem;
+  font-size: 1.35rem;
+  line-height: 1;
   cursor: pointer;
 }
+.lb-nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 2.6rem;
+  height: 2.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(247, 243, 236, 0.85);
+  color: #2b2118;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.lb-prev { left: 0.6rem; }
+.lb-next { right: 0.6rem; }
 .lb-cap {
   flex: 0 0 auto;
   color: #f7f3ec;
   text-align: center;
-  padding: 0.55rem 1rem;
+  padding: 0.6rem 1rem calc(0.9rem + env(safe-area-inset-bottom, 0px));
   font-size: 0.82rem;
   font-style: italic;
 }

@@ -845,42 +845,73 @@ function detailPapers(p) {
     : "";
 }
 
-// --- Image lightbox: click any card/tour image to view it large + zoom ---
-function openLightbox(src, caption) {
+// --- Image lightbox: fullscreen viewer with swipe-through gallery + zoom ---
+let lbGallery = [], lbIndex = 0;
+function openLightbox(gallery, index) {
+  lbGallery = gallery.filter((g) => g && g.url);
+  if (!lbGallery.length) return;
+  lbIndex = index || 0;
   let lb = document.getElementById("lightbox");
   if (!lb) {
     lb = document.createElement("div");
     lb.id = "lightbox";
     lb.innerHTML =
       `<button class="lb-close" aria-label="Close image">✕</button>` +
+      `<button class="lb-nav lb-prev" aria-label="Previous image">‹</button>` +
+      `<button class="lb-nav lb-next" aria-label="Next image">›</button>` +
       `<div class="lb-scroll"><img class="lb-img" alt="" /></div>` +
       `<div class="lb-cap"></div>`;
     document.body.appendChild(lb);
-    lb.addEventListener("click", (e) => {
-      if (e.target === lb || e.target.classList.contains("lb-scroll") || e.target.classList.contains("lb-close")) closeLightbox();
-    });
-    lb.querySelector(".lb-img").addEventListener("click", (e) => {
-      e.stopPropagation();
-      lb.classList.toggle("zoomed"); // tap image to zoom in / out
+    lb.querySelector(".lb-close").addEventListener("click", (e) => { e.stopPropagation(); closeLightbox(); });
+    lb.addEventListener("click", (e) => { if (e.target === lb || e.target.classList.contains("lb-scroll")) closeLightbox(); });
+    lb.querySelector(".lb-img").addEventListener("click", (e) => { e.stopPropagation(); lb.classList.toggle("zoomed"); });
+    lb.querySelector(".lb-prev").addEventListener("click", (e) => { e.stopPropagation(); lbShow(lbIndex - 1); });
+    lb.querySelector(".lb-next").addEventListener("click", (e) => { e.stopPropagation(); lbShow(lbIndex + 1); });
+    let x0 = null;
+    const sc = lb.querySelector(".lb-scroll");
+    sc.addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+    sc.addEventListener("touchend", (e) => {
+      if (x0 == null || lb.classList.contains("zoomed")) { x0 = null; return; }
+      const dx = e.changedTouches[0].clientX - x0;
+      if (Math.abs(dx) > 45) lbShow(lbIndex + (dx < 0 ? 1 : -1));
+      x0 = null;
     });
   }
-  lb.querySelector(".lb-img").src = src;
-  lb.querySelector(".lb-img").alt = caption || "";
-  lb.querySelector(".lb-cap").textContent = caption || "";
-  lb.classList.remove("zoomed");
+  lbShow(lbIndex);
   lb.classList.add("open");
+}
+function lbShow(i) {
+  const lb = document.getElementById("lightbox");
+  if (!lb || !lbGallery.length) return;
+  lbIndex = (i + lbGallery.length) % lbGallery.length;
+  const m = lbGallery[lbIndex];
+  lb.classList.remove("zoomed");
+  lb.querySelector(".lb-img").src = m.url;
+  lb.querySelector(".lb-img").alt = m.caption || "";
+  lb.querySelector(".lb-cap").textContent = m.caption || "";
+  const multi = lbGallery.length > 1;
+  lb.querySelector(".lb-prev").style.display = multi ? "" : "none";
+  lb.querySelector(".lb-next").style.display = multi ? "" : "none";
 }
 function closeLightbox() {
   const lb = document.getElementById("lightbox");
   if (lb) lb.classList.remove("open");
 }
-// Clicking a card image or tour-stop image opens the lightbox (not a link-out).
+// Tapping a card/tour/carousel image opens the fullscreen viewer. From a carousel,
+// the whole set is loaded so you can swipe through it fullscreen.
 storyDetail.addEventListener("click", (e) => {
   const wrap = e.target.closest(".story-img, .tour-stop-img");
   if (!wrap) return;
   e.preventDefault();
-  const img = wrap.matches("img") ? wrap : wrap.querySelector("img");
-  if (img) openLightbox(img.currentSrc || img.src, img.alt);
+  const carousel = wrap.closest(".carousel");
+  if (carousel) {
+    const slides = [...carousel.querySelectorAll(".cslide")];
+    const gallery = slides.map((s) => { const im = s.querySelector("img"); return { url: im.currentSrc || im.src, caption: s.dataset.cap || im.alt }; });
+    openLightbox(gallery, slides.indexOf(wrap.closest(".cslide")));
+  } else {
+    const img = wrap.matches("img") ? wrap : wrap.querySelector("img");
+    if (img) openLightbox([{ url: img.currentSrc || img.src, caption: img.alt }], 0);
+  }
 });
 
 function openDetail(html) {
