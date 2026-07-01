@@ -254,6 +254,12 @@ const map = new maplibregl.Map({
 });
 
 // (zoom/compass controls removed — touch pinch-zoom + the Explore/Near me UI cover navigation)
+map.doubleClickZoom.disable(); // stop accidental double-tap zoom while tapping pins/buttons
+// Keep the canvas filling the full (safe-area) viewport in the installed PWA.
+const fitMap = () => map.resize();
+window.addEventListener("resize", fitMap);
+window.addEventListener("orientationchange", () => setTimeout(fitMap, 300));
+map.on("load", () => { fitMap(); setTimeout(fitMap, 400); });
 
 // Unified pin click: query a PADDED box around the tap (bigger on touch) so
 // pins are easy to hit, then open the nearest one. Tapping empty closes the
@@ -2245,9 +2251,11 @@ map.on("load", async () => {
   await loadSuburbs();
   setupCollapsibles();
 
-  // Data is in — clear the loading overlay.
+  // Data is in — clear the loading overlay and reveal the on-map UI.
   const boot = document.getElementById("boot");
   if (boot) { boot.style.opacity = "0"; setTimeout(() => boot.remove(), 450); }
+  document.body.classList.add("ready");
+  fitMap();
 });
 
 // If any data load rejects, the boot overlay stays — turn it into an error message.
