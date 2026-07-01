@@ -1,0 +1,11 @@
+{
+  "appId": "studio.swan.sydneylayered",
+  "appName": "Sydney, Layered",
+  "webDir": "web",
+  "backgroundColor": "#1f1b16",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": false,
+    "backgroundColor": "#1f1b16"
+  }
+}

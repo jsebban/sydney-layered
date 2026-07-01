@@ -1018,24 +1018,11 @@ section > h2 {
 
 /* --- Mobile: sidebar becomes a bottom sheet over a full-screen map --- */
 @media (max-width: 768px) {
-  /* iOS only collapses the bottom safe-area gap once the page scrolls. #scroll-spacer
-     (added in app.js) is REAL content taller than the viewport, so the scroll is
-     legitimate and holds instead of rubber-banding back. */
-  html { height: 100%; overflow-y: scroll; -webkit-overflow-scrolling: touch; overscroll-behavior-y: none; }
-  body { display: block; margin: 0; }
-  #scroll-spacer { position: relative; width: 1px; height: calc(100dvh + 180px); pointer-events: none; opacity: 0; }
-  /* 100vh is the LARGE viewport (full physical screen, 852px) vs 100dvh which
-     iOS caps at the safe box (793px). Pin to the top and OVERSHOOT the bottom a
-     little so the map always covers the home-indicator strip with margin to
-     spare. app.js forces a repaint after resize so no stale dark strip shows. */
-  #map {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: auto;
-    height: calc(100vh + env(safe-area-inset-bottom, 0px) + 12px);
-  }
+  body { display: block; height: 100dvh; }
+  /* Full-bleed map. In the native (Capacitor) WebView this fills the entire
+     screen; on the web PWA a fixed WebGL map can't paint the home-indicator
+     strip (an iOS standalone limitation), which is why we ship the native app. */
+  #map { position: fixed; inset: 0; }
   #sidebar {
     position: fixed;
     left: 0;

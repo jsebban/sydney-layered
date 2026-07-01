@@ -269,16 +269,6 @@ map.on("load", () => { fitMap(); [200, 500, 1200, 2500].forEach((t) => setTimeou
 document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(fitMap, 100); });
 window.addEventListener("pageshow", () => setTimeout(fitMap, 100));
 
-// iOS keeps a bottom safe-area gap until the page scrolls, and empty overscroll
-// springs back. So give the page a real scrollable element (#scroll-spacer) and
-// scroll into place ONCE — no re-assertion loop (that caused the flicker).
-const spacer = document.createElement("div");
-spacer.id = "scroll-spacer";
-document.body.appendChild(spacer);
-function engageImmersive() { window.scrollTo(0, 130); }
-window.addEventListener("load", () => setTimeout(engageImmersive, 250));
-window.addEventListener("orientationchange", () => setTimeout(engageImmersive, 400));
-document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(engageImmersive, 200); });
 
 // Unified pin click: query a PADDED box around the tap (bigger on touch) so
 // pins are easy to hit, then open the nearest one. Tapping empty closes the

@@ -13,3 +13,11 @@ web/img/.DS_Store
 **/.DS_Store
 *.log
 node_modules/
+# Capacitor / iOS native build artifacts (project is committed; outputs are not)
+ios/App/App/public/
+ios/App/Pods/
+ios/App/build/
+ios/**/DerivedData/
+*.xcuserstate
+ios/App/App.xcodeproj/xcuserdata/
+ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
