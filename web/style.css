@@ -1031,14 +1031,21 @@ section > h2 {
     bottom: auto;
     height: calc(100vh + env(safe-area-inset-bottom, 0px) + 12px);
   }
-  /* WebKit clips the WebGL layer at the safe-area edge in standalone PWAs,
-     leaving the home-indicator strip unpainted. Promote the canvas to its own
-     composited layer so it paints edge-to-edge past that boundary. */
-  #map .maplibregl-canvas,
-  #map .maplibregl-canvas-container {
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-    will-change: transform;
+  /* WebKit clips the WebGL map at the home-indicator safe-area boundary, so the
+     map can't paint that strip. #safe-fill is a plain DOM element (which CAN
+     paint there) showing a snapshot of the map's bottom edge — see app.js
+     paintSafeArea(). It sits over the strip and continues the map seamlessly. */
+  #safe-fill {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(env(safe-area-inset-bottom, 0px) + 2px);
+    background-size: 100% auto;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    z-index: 1;
+    pointer-events: none;
   }
   #sidebar {
     position: fixed;

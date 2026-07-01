@@ -269,29 +269,44 @@ map.on("load", () => { fitMap(); [200, 500, 1200, 2500].forEach((t) => setTimeou
 document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(fitMap, 100); });
 window.addEventListener("pageshow", () => setTimeout(fitMap, 100));
 
-// iOS won't composite the WebGL map into the home-indicator safe-area strip; it
-// paints that strip with the page background instead. So sample the map's bottom
-// edge and set the page background to match — the strip blends into the map.
-const _sampler = document.createElement("canvas");
-_sampler.width = 1; _sampler.height = 1;
-const _sctx = _sampler.getContext("2d");
-function matchSafeAreaColor() {
+// WebKit clips the WebGL map at the home-indicator safe-area boundary in
+// standalone PWAs, so the map itself can't paint that strip — but ordinary DOM
+// elements CAN. So we render the map's bottom edge as an <img>-like DOM element
+// (#safe-fill) that sits in the strip, plus set the page background to the
+// bottom-edge colour as an ultimate fallback. Refreshed whenever the map settles.
+const safeFill = document.createElement("div");
+safeFill.id = "safe-fill";
+document.body.appendChild(safeFill);
+const _slice = document.createElement("canvas");
+const _one = document.createElement("canvas");
+_one.width = 1; _one.height = 1;
+const _octx = _one.getContext("2d");
+function paintSafeArea() {
   try {
     const c = map.getCanvas();
     if (!c || !c.width) return;
-    // Average the bottom ~6px of the map into one pixel.
-    _sctx.drawImage(c, 0, c.height - 6, c.width, 6, 0, 0, 1, 1);
-    const d = _sctx.getImageData(0, 0, 1, 1).data;
-    if (d[3] === 0) return; // fully transparent → nothing rendered yet
-    const col = `rgb(${d[0]}, ${d[1]}, ${d[2]})`;
-    document.documentElement.style.background = col;
-    document.body.style.background = col;
-    const tc = document.querySelector('meta[name="theme-color"]');
-    if (tc) tc.setAttribute("content", col);
+    const dpr = window.devicePixelRatio || 1;
+    const sh = Math.min(c.height, Math.round(70 * dpr)); // bottom 70 css px of map
+    if (sh <= 0) return;
+    _slice.width = c.width; _slice.height = sh;
+    const sctx = _slice.getContext("2d");
+    sctx.drawImage(c, 0, c.height - sh, c.width, sh, 0, 0, c.width, sh);
+    safeFill.style.backgroundImage = "url(" + _slice.toDataURL() + ")";
+    // Ultimate fallback: page background = bottom-edge colour.
+    _octx.drawImage(c, 0, c.height - 6, c.width, 6, 0, 0, 1, 1);
+    const d = _octx.getImageData(0, 0, 1, 1).data;
+    if (d[3] !== 0) {
+      const col = `rgb(${d[0]}, ${d[1]}, ${d[2]})`;
+      document.documentElement.style.background = col;
+      document.body.style.background = col;
+      const tc = document.querySelector('meta[name="theme-color"]');
+      if (tc) tc.setAttribute("content", col);
+    }
   } catch (e) { /* readback blocked — leave the default dark background */ }
 }
-map.on("idle", matchSafeAreaColor);
-map.on("load", () => setTimeout(matchSafeAreaColor, 600));
+map.on("idle", paintSafeArea);
+map.on("moveend", paintSafeArea);
+map.on("load", () => setTimeout(paintSafeArea, 600));
 
 // Unified pin click: query a PADDED box around the tap (bigger on touch) so
 // pins are easy to hit, then open the nearest one. Tapping empty closes the
