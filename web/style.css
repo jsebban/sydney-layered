@@ -1297,3 +1297,7 @@ body.credits-open #legend { bottom: calc(1rem + var(--credits-h, 80px)); }
 
 /* Prevent the browser's double-tap-to-zoom on the on-map controls */
 #nearme-btn, #sidebar-toggle, #attrib-btn, #legend, .legend-toggle, .lb-close, .lb-nav { touch-action: manipulation; }
+
+/* DIAGNOSTIC (temporary) — colour-code the layers to identify the bottom bar */
+html, body { background: #ff2d2d !important; }
+@media (max-width: 768px) { #map { background: #17d02f !important; } }
