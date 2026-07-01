@@ -1019,7 +1019,7 @@ section > h2 {
 /* --- Mobile: sidebar becomes a bottom sheet over a full-screen map --- */
 @media (max-width: 768px) {
   body { display: block; height: 100dvh; }
-  #map { position: fixed; inset: 0; height: 100%; }
+  #map { position: fixed; inset: 0; }
   #sidebar {
     position: fixed;
     left: 0;
@@ -1271,8 +1271,8 @@ body.credits-open #legend { bottom: calc(1rem + var(--credits-h, 80px)); }
    and "Near me" triggers location. Zoom/compass were removed in app.js. */
 .maplibregl-ctrl-top-right { display: none; }
 /* Bottom buttons sit just above the bottom edge (clear of the home indicator) and on top */
-#sidebar-toggle { bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px)); z-index: 50; }
-#nearme-btn { bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px)); z-index: 50; }
+#sidebar-toggle { bottom: calc(0.15rem + env(safe-area-inset-bottom, 0px)); z-index: 50; }
+#nearme-btn { bottom: calc(0.15rem + env(safe-area-inset-bottom, 0px)); z-index: 50; }
 /* Key sits top-left, below the status bar */
 @media (max-width: 768px) {
   #legend {
@@ -1287,6 +1287,5 @@ body.credits-open #legend { bottom: calc(1rem + var(--credits-h, 80px)); }
 /* On phones: float the legend above the Near me pill so they don't overlap, and
    hide both pills while the bottom sheet is open */
 @media (max-width: 768px) {
-  #legend { bottom: calc(4rem + env(safe-area-inset-bottom, 0px)); }
   #sidebar.open ~ #nearme-btn { display: none; }
 }
