@@ -1019,16 +1019,18 @@ section > h2 {
 /* --- Mobile: sidebar becomes a bottom sheet over a full-screen map --- */
 @media (max-width: 768px) {
   body { display: block; height: 100dvh; }
-  /* The top already sits under the translucent status bar (seamless), so leave
-     top:0. Only the bottom home-indicator strip is uncovered because iOS pins
-     a fixed element's bottom:0 to the safe-area edge, not the screen edge — so
-     push the bottom PAST it with a negative inset to fill that strip. */
+  /* 100dvh resolves to the SAFE box on iOS (leaves the home-indicator strip);
+     100vh is the LARGE viewport = full physical screen. Pin to the top and use
+     100vh so the map covers the whole screen incl. the home-indicator strip.
+     Belt-and-braces: also extend a touch past the bottom safe area. */
   #map {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+    bottom: auto;
+    height: 100vh;
+    min-height: calc(100dvh + env(safe-area-inset-bottom, 0px));
   }
   #sidebar {
     position: fixed;
