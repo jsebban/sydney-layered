@@ -1019,7 +1019,7 @@ section > h2 {
 /* --- Mobile: sidebar becomes a bottom sheet over a full-screen map --- */
 @media (max-width: 768px) {
   body { display: block; height: 100dvh; }
-  #map { position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100vh; }
+  #map { position: fixed; inset: 0; }
   #sidebar {
     position: fixed;
     left: 0;
@@ -1039,6 +1039,9 @@ section > h2 {
     z-index: 30;
   }
   #sidebar.open { transform: translateY(0); }
+  /* When slid off-screen, its upward box-shadow painted a dark band across the
+     bottom of the map — drop the shadow while closed (keeps the slide animation). */
+  #sidebar:not(.open) { box-shadow: none; }
   /* When a pin/tour is open, the sheet shows ONLY that detail — not the
      search/filter/list controls (which are reached via the ☰ button). */
   #sidebar.detail-mode > *:not(#story-detail) { display: none; }
