@@ -1,5 +1,5 @@
 // Sydney, Layered service worker — enables install + basic offline (network-first, cache fallback).
-const CACHE = "sl-v11";
+const CACHE = "sl-v12";
 const CORE = [
   "./", "index.html", "app.js", "geo.js", "style.css", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png",
@@ -8,6 +8,7 @@ const CORE = [
   "https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js",
   "https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css"
 ];
+self.addEventListener("message", (e) => { if (e.data === "skip-waiting") self.skipWaiting(); });
 self.addEventListener("install", (e) => {
   self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then((c) => Promise.allSettled(CORE.map((u) => c.add(u)))));

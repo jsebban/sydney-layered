@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>Sydney, Layered — an interactive history of Sydney</title>
   <link href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css" rel="stylesheet" />
-  <link href="style.css?v=20260701a" rel="stylesheet" />
+  <link href="style.css?v=20260701b" rel="stylesheet" />
   <!-- PWA / install on iPhone -->
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#1f1b16" />
@@ -118,34 +118,23 @@
   <script src="geo.js?v=20260630a"></script>
   <script>
     if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").then((reg) => {
+          // When a new service worker takes over, reload once so updates land
+          // without needing to delete + re-add the app.
+          reg.addEventListener("updatefound", () => {
+            const nw = reg.installing;
+            if (nw) nw.addEventListener("statechange", () => {
+              if (nw.state === "installed" && navigator.serviceWorker.controller) nw.postMessage("skip-waiting");
+            });
+          });
+        }).catch(() => {});
+        let reloaded = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (reloaded) return; reloaded = true; location.reload();
+        });
+      });
     }
-  </script>
-  <!-- TEMP DEBUG readout -->
-  <div id="dbg" style="position:fixed;top:calc(env(safe-area-inset-top,0px) + 4px);left:4px;z-index:99999;background:rgba(0,0,0,.82);color:#0f0;font:11px/1.45 monospace;padding:6px 8px;border-radius:6px;max-width:78vw;pointer-events:none;white-space:pre"></div>
-  <script>
-    function dbgUpdate() {
-      var m = document.getElementById("map");
-      var mr = m ? Math.round(m.getBoundingClientRect().height) : 0;
-      var cv = m ? m.querySelector(".maplibregl-canvas") : null;
-      var cvh = cv ? Math.round(cv.getBoundingClientRect().height) : 0;
-      var standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
-      var probe = document.getElementById("sab-probe");
-      var sab = probe ? Math.round(probe.getBoundingClientRect().height) : -1;
-      document.getElementById("dbg").textContent =
-        "standalone: " + (standalone ? "YES" : "NO") +
-        "\ninnerH " + window.innerHeight + "  screenH " + screen.height +
-        "\ndocClientH " + document.documentElement.clientHeight +
-        "\n#map H " + mr + "   canvas H " + cvh +
-        "\nsafe-bottom px " + sab;
-    }
-    // hidden probe whose height == env(safe-area-inset-bottom)
-    var _p = document.createElement("div");
-    _p.id = "sab-probe";
-    _p.style.cssText = "position:fixed;bottom:0;left:0;width:1px;height:env(safe-area-inset-bottom,0px);pointer-events:none;opacity:0;";
-    document.body.appendChild(_p);
-    window.addEventListener("load", function () { dbgUpdate(); setTimeout(dbgUpdate, 800); setTimeout(dbgUpdate, 2500); });
-    window.addEventListener("resize", dbgUpdate);
   </script>
 </body>
 </html>
