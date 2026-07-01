@@ -1018,11 +1018,12 @@ section > h2 {
 
 /* --- Mobile: sidebar becomes a bottom sheet over a full-screen map --- */
 @media (max-width: 768px) {
-  /* Give the page a little scroll room past the viewport. iOS only engages its
-     full-bleed (safe-area-collapsed) mode once the page can scroll; app.js then
-     nudges it into that scrolled state so the fixed map fills to the bottom. */
-  html { height: 100%; overflow-y: scroll; -webkit-overflow-scrolling: touch; }
-  body { display: block; min-height: calc(100dvh + 140px); }
+  /* iOS only collapses the bottom safe-area gap once the page scrolls. #scroll-spacer
+     (added in app.js) is REAL content taller than the viewport, so the scroll is
+     legitimate and holds instead of rubber-banding back. */
+  html { height: 100%; overflow-y: scroll; -webkit-overflow-scrolling: touch; overscroll-behavior-y: none; }
+  body { display: block; margin: 0; }
+  #scroll-spacer { position: relative; width: 1px; height: calc(100dvh + 180px); pointer-events: none; opacity: 0; }
   /* 100vh is the LARGE viewport (full physical screen, 852px) vs 100dvh which
      iOS caps at the safe box (793px). Pin to the top and OVERSHOOT the bottom a
      little so the map always covers the home-indicator strip with margin to
