@@ -308,6 +308,13 @@ map.on("idle", paintSafeArea);
 map.on("moveend", paintSafeArea);
 map.on("load", () => setTimeout(paintSafeArea, 600));
 
+// iOS only collapses the bottom safe-area gap once the page has scrolled, so
+// nudge it into the scrolled (full-bleed) state on launch and after it settles.
+function engageImmersive() { window.scrollTo(0, 60); setTimeout(fitMap, 60); }
+window.addEventListener("load", () => [100, 400, 900, 1800].forEach((t) => setTimeout(engageImmersive, t)));
+window.addEventListener("orientationchange", () => setTimeout(engageImmersive, 400));
+document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(engageImmersive, 150); });
+
 // Unified pin click: query a PADDED box around the tap (bigger on touch) so
 // pins are easy to hit, then open the nearest one. Tapping empty closes the
 // open card. Playback (tour/dossier) handles its own navigation.
