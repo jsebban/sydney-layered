@@ -259,7 +259,11 @@ map.doubleClickZoom.disable(); // stop accidental double-tap zoom while tapping 
 const fitMap = () => map.resize();
 window.addEventListener("resize", fitMap);
 window.addEventListener("orientationchange", () => setTimeout(fitMap, 300));
-map.on("load", () => { fitMap(); setTimeout(fitMap, 400); });
+// Repaint the canvas into the extended (past-safe-area) container. iOS settles
+// the standalone viewport a beat after launch, so nudge resize a few times.
+map.on("load", () => { fitMap(); [200, 500, 1200].forEach((t) => setTimeout(fitMap, t)); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(fitMap, 100); });
+window.addEventListener("pageshow", () => setTimeout(fitMap, 100));
 
 // Unified pin click: query a PADDED box around the tap (bigger on touch) so
 // pins are easy to hit, then open the nearest one. Tapping empty closes the
