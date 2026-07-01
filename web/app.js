@@ -245,6 +245,9 @@ const map = new maplibregl.Map({
   // Built-in attribution off — we render our own tidy credits panel (#credits)
   // toggled by the ⓘ button, so the required credits stay available but unobtrusive.
   attributionControl: false,
+  // Lets us read the canvas pixels (see matchSafeAreaColor) so the iOS
+  // home-indicator strip can be painted to match the map's bottom edge.
+  preserveDrawingBuffer: true,
   style: {
     version: 8,
     glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
@@ -265,6 +268,30 @@ window.addEventListener("orientationchange", () => setTimeout(fitMap, 300));
 map.on("load", () => { fitMap(); [200, 500, 1200, 2500].forEach((t) => setTimeout(fitMap, t)); });
 document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(fitMap, 100); });
 window.addEventListener("pageshow", () => setTimeout(fitMap, 100));
+
+// iOS won't composite the WebGL map into the home-indicator safe-area strip; it
+// paints that strip with the page background instead. So sample the map's bottom
+// edge and set the page background to match — the strip blends into the map.
+const _sampler = document.createElement("canvas");
+_sampler.width = 1; _sampler.height = 1;
+const _sctx = _sampler.getContext("2d");
+function matchSafeAreaColor() {
+  try {
+    const c = map.getCanvas();
+    if (!c || !c.width) return;
+    // Average the bottom ~6px of the map into one pixel.
+    _sctx.drawImage(c, 0, c.height - 6, c.width, 6, 0, 0, 1, 1);
+    const d = _sctx.getImageData(0, 0, 1, 1).data;
+    if (d[3] === 0) return; // fully transparent → nothing rendered yet
+    const col = `rgb(${d[0]}, ${d[1]}, ${d[2]})`;
+    document.documentElement.style.background = col;
+    document.body.style.background = col;
+    const tc = document.querySelector('meta[name="theme-color"]');
+    if (tc) tc.setAttribute("content", col);
+  } catch (e) { /* readback blocked — leave the default dark background */ }
+}
+map.on("idle", matchSafeAreaColor);
+map.on("load", () => setTimeout(matchSafeAreaColor, 600));
 
 // Unified pin click: query a PADDED box around the tap (bigger on touch) so
 // pins are easy to hit, then open the nearest one. Tapping empty closes the
