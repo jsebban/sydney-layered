@@ -1019,7 +1019,10 @@ section > h2 {
 /* --- Mobile: sidebar becomes a bottom sheet over a full-screen map --- */
 @media (max-width: 768px) {
   body { display: block; height: 100dvh; }
-  #map { position: fixed; inset: 0; }
+  /* Pin to the TOP only + full physical viewport height. Do NOT set bottom:
+     pinning both top and bottom would clamp the map to the safe-area box and
+     leave the home-indicator strip uncovered (the "bottom bar"). */
+  #map { position: fixed; top: 0; left: 0; right: 0; bottom: auto; height: 100vh; height: 100dvh; }
   #sidebar {
     position: fixed;
     left: 0;
@@ -1297,7 +1300,3 @@ body.credits-open #legend { bottom: calc(1rem + var(--credits-h, 80px)); }
 
 /* Prevent the browser's double-tap-to-zoom on the on-map controls */
 #nearme-btn, #sidebar-toggle, #attrib-btn, #legend, .legend-toggle, .lb-close, .lb-nav { touch-action: manipulation; }
-
-/* DIAGNOSTIC (temporary) — colour-code the layers to identify the bottom bar */
-html, body { background: #ff2d2d !important; }
-@media (max-width: 768px) { #map { background: #17d02f !important; } }
