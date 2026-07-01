@@ -256,12 +256,13 @@ const map = new maplibregl.Map({
 // (zoom/compass controls removed — touch pinch-zoom + the Explore/Near me UI cover navigation)
 map.doubleClickZoom.disable(); // stop accidental double-tap zoom while tapping pins/buttons
 // Keep the canvas filling the full (safe-area) viewport in the installed PWA.
-const fitMap = () => map.resize();
+// Resize the GL buffer to the container AND force a full repaint — otherwise the
+// canvas can grow but keep stale (dark) pixels in the newly-exposed bottom strip.
+const fitMap = () => { map.resize(); map.triggerRepaint(); };
 window.addEventListener("resize", fitMap);
 window.addEventListener("orientationchange", () => setTimeout(fitMap, 300));
-// Repaint the canvas into the extended (past-safe-area) container. iOS settles
-// the standalone viewport a beat after launch, so nudge resize a few times.
-map.on("load", () => { fitMap(); [200, 500, 1200].forEach((t) => setTimeout(fitMap, t)); });
+// iOS settles the standalone viewport a beat after launch, so nudge a few times.
+map.on("load", () => { fitMap(); [200, 500, 1200, 2500].forEach((t) => setTimeout(fitMap, t)); });
 document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(fitMap, 100); });
 window.addEventListener("pageshow", () => setTimeout(fitMap, 100));
 
