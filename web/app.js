@@ -734,6 +734,7 @@ for (const theme of THEMES) {
 
 function closeStory() {
   storyDetail.hidden = true;
+  storyDetail.classList.remove("in-dossier");
   storyDetail.innerHTML = "";
   document
     .querySelectorAll("#story-list li, #building-list li")
@@ -1341,6 +1342,7 @@ async function loadDossiers() {
 
 function exitDossier() {
   activeDossier = null;
+  storyDetail.classList.remove("in-dossier");
   closeStory();
 }
 
@@ -1378,6 +1380,7 @@ function showDossierChapter(i) {
 
 function openDossier(d, center) {
   activeDossier = d;
+  storyDetail.classList.add("in-dossier"); // drives the cinematic chapter entrance
   const a = featureIndex[d.anchor];
   if (center) {
     // Opened by tapping a spot (e.g. a point on a street): stay where the tap landed.
