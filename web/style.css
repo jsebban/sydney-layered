@@ -1357,3 +1357,112 @@ body.credits-open #legend { bottom: calc(1rem + var(--credits-h, 80px)); }
 
 /* Prevent the browser's double-tap-to-zoom on the on-map controls */
 #nearme-btn, #sidebar-toggle, #attrib-btn, #legend, .legend-toggle, .lb-close, .lb-nav { touch-action: manipulation; }
+
+/* ============================================================================
+   Full-screen "library" reader — choose-your-own-adventure deep dive.
+   Cover (hero + chapter cards) → chapter (swipeable beats). Map hidden.
+   ============================================================================ */
+#reader[hidden] { display: none; }
+#reader {
+  position: fixed; inset: 0; z-index: 300;
+  background: var(--paper); color: var(--ink);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+body.reading #sidebar-toggle,
+body.reading #nearme-btn,
+body.reading #legend,
+body.reading #attrib-btn { display: none !important; }
+
+/* --- Cover --- */
+.reader-cover { display: flex; flex-direction: column; height: 100%; animation: rdrFade 350ms ease both; }
+.rc-hero {
+  position: relative; flex: none; height: 42vh; min-height: 230px;
+  background-size: cover; background-position: center;
+  animation: rdrHero 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.rc-hero-grad { position: absolute; inset: 0; background: linear-gradient(to top, rgba(20,16,12,0.88) 0%, rgba(20,16,12,0.12) 45%, rgba(20,16,12,0.4) 100%); }
+.rc-hero-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 1.2rem; }
+.rc-title { color: #fff; font-size: 2rem; line-height: 1.08; margin: 0; text-shadow: 0 2px 18px rgba(0,0,0,0.55); animation: rdrRise 700ms ease 200ms both; }
+.reader-close {
+  position: absolute; top: calc(0.6rem + env(safe-area-inset-top, 0px)); right: 0.8rem; z-index: 6;
+  width: 2.4rem; height: 2.4rem; border-radius: 50%;
+  border: none; background: rgba(20,16,12,0.55); color: #fff; font-size: 1.35rem; line-height: 1; cursor: pointer;
+}
+.rc-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 1.1rem 1.2rem calc(1.6rem + env(safe-area-inset-bottom, 0px)); }
+.rc-hook { font-size: 1.06rem; font-style: italic; line-height: 1.5; color: #4a3d2e; margin: 0 0 1.3rem; }
+.rc-toc { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.72rem; color: var(--accent); font-weight: 700; margin: 0 0 0.6rem; }
+.rc-chapters { display: flex; flex-direction: column; gap: 0.7rem; }
+.rc-chap {
+  display: flex; align-items: stretch; gap: 0.85rem; text-align: left;
+  background: #fffdf8; border: 1px solid #e2d9c8; border-radius: 12px; padding: 0.6rem;
+  cursor: pointer; font-family: inherit; color: inherit;
+  box-shadow: 0 1px 5px rgba(43,33,24,0.07); animation: rdrRise 500ms ease both;
+  transition: transform 0.06s;
+}
+.rc-chap:active { transform: scale(0.985); }
+.rc-chap:nth-child(1) { animation-delay: 0.06s; }
+.rc-chap:nth-child(2) { animation-delay: 0.14s; }
+.rc-chap:nth-child(3) { animation-delay: 0.22s; }
+.rc-chap:nth-child(4) { animation-delay: 0.30s; }
+.rc-chap:nth-child(5) { animation-delay: 0.38s; }
+.rc-chap-img { flex: 0 0 84px; width: 84px; height: 84px; border-radius: 9px; background-image: var(--chap-img); background-size: cover; background-position: center; }
+.rc-chap-meta { display: flex; flex-direction: column; justify-content: center; min-width: 0; flex: 1; }
+.rc-chap-n { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 700; }
+.rc-chap-name { font-size: 1.18rem; line-height: 1.14; margin: 0.1rem 0 0.2rem; }
+.rc-chap-hook { font-size: 0.82rem; color: #6b5d4d; line-height: 1.3; }
+.rc-chap-go { align-self: center; color: #c3b49a; font-size: 1.6rem; padding-right: 0.2rem; }
+
+/* --- Chapter (swipeable beats) --- */
+.reader-chapter { display: flex; flex-direction: column; height: 100%; }
+.rch-top {
+  flex: none; display: flex; align-items: center; gap: 0.5rem;
+  padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 0.8rem 0.5rem;
+  border-bottom: 1px solid #e2d9c8; background: var(--paper);
+}
+.reader-back { border: none; background: none; font: inherit; font-size: 0.9rem; color: var(--accent); font-weight: 700; cursor: pointer; padding: 0.2rem 0; }
+.rch-count { flex: 1; text-align: center; font-size: 0.74rem; color: #6b5d4d; }
+.rch-top .reader-close { position: static; width: 2rem; height: 2rem; background: #e7ded0; color: var(--ink); font-size: 1.15rem; }
+.rch-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.beat { padding-bottom: 1.2rem; }
+#reader .beat .story-img { display: block; width: 100%; margin: 0; border-radius: 0; overflow: hidden; background: #ded4c2; }
+#reader .beat .story-img img { width: 100%; max-height: 52vh; object-fit: cover; }
+#reader .beat .caption { padding: 0.4rem 1.2rem 0; }
+#reader .beat .carousel { margin: 0 0 0.2rem; }
+.beat-h { font-size: 1.55rem; line-height: 1.15; margin: 1.1rem 1.2rem 0.55rem; }
+.beat-p { font-size: 1.08rem; line-height: 1.62; margin: 0 1.2rem 0.95rem; color: #332a1e; }
+.rch-nav {
+  flex: none; display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.6rem 0.9rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid #e2d9c8; background: var(--paper);
+}
+.rb-prev, .rb-next { border: none; border-radius: 999px; padding: 0.55rem 1rem; font: inherit; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+.rb-prev { background: #e7ded0; color: var(--ink); }
+.rb-prev:disabled { opacity: 0.4; }
+.rb-next { background: var(--accent); color: #fff; margin-left: auto; }
+.rb-dots { display: flex; gap: 0.35rem; align-items: center; }
+.rb-dot { width: 7px; height: 7px; border-radius: 50%; background: #d3c7b2; }
+.rb-dot.on { background: var(--accent); transform: scale(1.25); }
+
+/* --- Entrance animations (the "pop") --- */
+@keyframes rdrFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rdrHero { from { opacity: 0; transform: scale(1.08); } to { opacity: 1; transform: scale(1); } }
+@keyframes rdrRise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes beatMedia { from { opacity: 0; transform: scale(1.12); } to { opacity: 1; transform: scale(1); } }
+@keyframes beatKen { from { transform: scale(1); } to { transform: scale(1.07); } }
+@keyframes beatText { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+.beat-in .story-img, .beat-in .carousel { animation: beatMedia 720ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.beat-in .story-img img { animation: beatKen 15s ease-out 720ms both; }
+.beat-in .beat-h { animation: beatText 620ms cubic-bezier(0.2, 0.7, 0.2, 1) 200ms both; }
+.beat-in .beat-p { animation: beatText 680ms cubic-bezier(0.2, 0.7, 0.2, 1) 320ms both; }
+
+/* Roomy centred column on desktop */
+@media (min-width: 769px) {
+  .rc-hero { max-width: 780px; margin: 0 auto; width: 100%; }
+  .rc-scroll { max-width: 780px; margin: 0 auto; width: 100%; }
+  .rch-top, .rch-scroll, .rch-nav { max-width: 780px; margin-left: auto; margin-right: auto; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reader-cover, .rc-hero, .rc-title, .rc-chap,
+  .beat-in .story-img, .beat-in .carousel, .beat-in .story-img img,
+  .beat-in .beat-h, .beat-in .beat-p { animation: none !important; }
+}

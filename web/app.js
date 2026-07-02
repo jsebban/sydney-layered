@@ -1379,6 +1379,8 @@ function showDossierChapter(i) {
 }
 
 function openDossier(d, center) {
+  // "library"-format deep dives open in the full-screen choose-your-own reader.
+  if (d && d.format === "library") { openStoryMode(d); return; }
   activeDossier = d;
   storyDetail.classList.add("in-dossier"); // drives the cinematic chapter entrance
   const a = featureIndex[d.anchor];
@@ -1391,6 +1393,112 @@ function openDossier(d, center) {
     else map.fitBounds(featureBounds(a), { padding: 70, maxZoom: 15.5, duration: 800 }); // show the whole street
   }
   showDossierChapter(0);
+}
+
+// ============================================================================
+// Full-screen "library" reader — a choose-your-own-adventure deep dive.
+// Cover (hero + chapter cards) → tap a chapter → swipe its beats → back / close.
+// The map is hidden while reading, so photos and text get the whole screen.
+// ============================================================================
+const readerEl = () => document.getElementById("reader");
+
+function openStoryMode(d) {
+  activeDossier = d;
+  const r = readerEl();
+  r.hidden = false;
+  document.body.classList.add("reading");
+  renderReaderCover(d);
+}
+
+function closeStoryMode() {
+  const r = readerEl();
+  r.hidden = true;
+  r.innerHTML = "";
+  document.body.classList.remove("reading");
+  activeDossier = null;
+  closeStory(); // reset the sheet/detail-mode and drop back to the map
+}
+
+function renderReaderCover(d) {
+  const r = readerEl();
+  const chaps = d.chapters.map((c, ci) => `
+    <button class="rc-chap" data-ci="${ci}" style="--chap-img:url('${asset(c.image || d.cover.image)}')">
+      <span class="rc-chap-img"></span>
+      <span class="rc-chap-meta">
+        <span class="rc-chap-n">Chapter ${ci + 1}</span>
+        <span class="rc-chap-name">${c.title}</span>
+        ${c.hook ? `<span class="rc-chap-hook">${inlineMd(c.hook)}</span>` : ""}
+      </span>
+      <span class="rc-chap-go">›</span>
+    </button>`).join("");
+  r.innerHTML = `
+    <div class="reader-cover">
+      <div class="rc-hero" style="background-image:url('${asset(d.cover.image)}')">
+        <button class="reader-close" aria-label="Close">×</button>
+        <div class="rc-hero-grad"></div>
+        <div class="rc-hero-text"><h1 class="rc-title">${d.title}</h1></div>
+      </div>
+      <div class="rc-scroll">
+        ${d.cover.hook ? `<p class="rc-hook">${inlineMd(d.cover.hook)}</p>` : ""}
+        <div class="rc-toc">Chapters</div>
+        <div class="rc-chapters">${chaps}</div>
+      </div>
+    </div>`;
+  r.scrollTop = 0;
+  r.querySelector(".reader-close").addEventListener("click", closeStoryMode);
+  r.querySelectorAll(".rc-chap").forEach((b) =>
+    b.addEventListener("click", () => openReaderChapter(d, +b.dataset.ci)));
+}
+
+function openReaderChapter(d, ci) {
+  const c = d.chapters[ci];
+  const beats = c.beats || [];
+  const r = readerEl();
+  let bi = 0, x0 = null, y0 = null;
+
+  function renderBeat() {
+    const b = beats[bi];
+    const last = bi === beats.length - 1;
+    r.innerHTML = `
+      <div class="reader-chapter">
+        <div class="rch-top">
+          <button class="reader-back" aria-label="Back to chapters">‹ Chapters</button>
+          <span class="rch-count">${c.title} · ${bi + 1}/${beats.length}</span>
+          <button class="reader-close" aria-label="Close">×</button>
+        </div>
+        <div class="rch-scroll">
+          <div class="beat beat-in">
+            ${mediaHtml(mediaList(b))}
+            ${b.heading ? `<h2 class="beat-h">${inlineMd(b.heading)}</h2>` : ""}
+            ${asArray(b.body).map((x) => `<p class="beat-p">${inlineMd(x)}</p>`).join("")}
+          </div>
+        </div>
+        <div class="rch-nav">
+          <button class="rb-prev" ${bi === 0 ? "disabled" : ""}>‹ Back</button>
+          <div class="rb-dots">${beats.map((_, k) => `<span class="rb-dot ${k === bi ? "on" : ""}"></span>`).join("")}</div>
+          <button class="rb-next">${last ? "Chapters ›" : "Next ›"}</button>
+        </div>
+      </div>`;
+    wireCarousels(r);
+    r.querySelector(".reader-back").addEventListener("click", () => renderReaderCover(d));
+    r.querySelector(".reader-close").addEventListener("click", closeStoryMode);
+    r.querySelector(".rb-prev").addEventListener("click", () => { if (bi > 0) { bi--; renderBeat(); } });
+    r.querySelector(".rb-next").addEventListener("click", () => { last ? renderReaderCover(d) : (bi++, renderBeat()); });
+    const sc = r.querySelector(".rch-scroll");
+    sc.scrollTop = 0;
+    // horizontal swipe advances beats (vertical scroll still works for long text)
+    sc.addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+    sc.addEventListener("touchend", (e) => {
+      if (x0 == null) return;
+      const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        if (dx < 0 && bi < beats.length - 1) { bi++; renderBeat(); }
+        else if (dx > 0 && bi > 0) { bi--; renderBeat(); }
+      }
+      x0 = null;
+    });
+  }
+  renderBeat();
 }
 
 const TOUR_KIND_LABEL = { time: "Through time", theme: "By theme", walk: "Walk" };

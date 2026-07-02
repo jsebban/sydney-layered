@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>Sydney, Layered — an interactive history of Sydney</title>
   <link href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css" rel="stylesheet" />
-  <link href="style.css?v=20260702c" rel="stylesheet" />
+  <link href="style.css?v=20260702d" rel="stylesheet" />
   <!-- PWA / install on iPhone -->
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#1f1b16" />
@@ -112,9 +112,11 @@
     </div>
   </div>
   <div id="boot" role="status">Mapping Sydney…</div>
+  <!-- Full-screen immersive reader for "library"-format deep dives (map hidden) -->
+  <div id="reader" hidden></div>
 
   <script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
-  <script src="app.js?v=20260702c"></script>
+  <script src="app.js?v=20260702d"></script>
   <script src="geo.js?v=20260630a"></script>
   <script>
     if ("serviceWorker" in navigator) {
