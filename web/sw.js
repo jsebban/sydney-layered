@@ -1,5 +1,5 @@
 // Sydney, Layered service worker — enables install + basic offline (network-first, cache fallback).
-const CACHE = "sl-v22";
+const CACHE = "sl-v23";
 const CORE = [
   "./", "index.html", "app.js", "geo.js", "style.css", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png",

@@ -355,6 +355,38 @@ section > h2 {
 }
 #story-detail .deepdive-btn:hover { background: #7e3c18; }
 
+/* Photo-first card: a one-line hook under the title, then a prominent CTA that
+   opens the swipeable deep dive. Keeps the card glanceable, depth one tap away. */
+#story-detail .hook {
+  font-size: 1.02rem;
+  line-height: 1.45;
+  color: #3a2e22;
+  font-style: italic;
+  margin: 0.15rem 0 0.85rem;
+}
+#story-detail .deepdive-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  margin: 0 0 0.5rem;
+  padding: 0.8rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #f7f3ec;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(154, 74, 31, 0.28);
+  transition: background 0.15s, transform 0.05s;
+}
+#story-detail .deepdive-cta:hover { background: #7e3c18; }
+#story-detail .deepdive-cta:active { transform: translateY(1px); }
+
 .tour-nav {
   margin: -1rem -1rem 1rem;
   padding: 0.65rem 1rem;

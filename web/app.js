@@ -831,6 +831,24 @@ function wireCarousels(root) {
   });
 }
 
+// --- Photo-first card helpers ---
+// One-line hook: the first sentence of the body/first story, for the card lead-in.
+function hookOf(p) {
+  const src = asArray(p.body)[0] || asArray(p.stories)[0] || p.blurb || "";
+  const plain = String(src).replace(/[*_]/g, "").trim();
+  const m = plain.match(/^.*?[.!?](\s|$)/);
+  const s = m ? m[0].trim() : plain;
+  return s.length > 140 ? s.slice(0, 137).trim() + "…" : s;
+}
+// Prominent CTA into the swipeable deep dive, when one exists for this feature.
+function deepDiveCta(typeKey) {
+  const d = dossiersByAnchor[typeKey];
+  if (!d) return "";
+  const n = (d.chapters || []).length;
+  const label = n > 1 ? `Read the story · ${n} chapters →` : "Read the story →";
+  return `<button class="deepdive-cta" type="button" data-anchor="${escAttr(typeKey)}">${label}</button>`;
+}
+
 function fmtPaperDate(iso) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
   if (!m) return iso || "";
@@ -939,6 +957,12 @@ function openDetail(html) {
     .addEventListener("click", () =>
       activeDossier ? exitDossier() : activeTour ? exitTour() : closeStory()
     );
+  // "Read the story →" opens the swipeable deep-dive chapters.
+  const cta = storyDetail.querySelector(".deepdive-cta");
+  if (cta) cta.addEventListener("click", () => {
+    const d = dossiersByAnchor[cta.dataset.anchor];
+    if (d) openDossier(d);
+  });
   // On mobile the sheet is raised by the caller AFTER the camera settles
   // (flyToFeature / show*), so the card doesn't cover the zoom-in.
   if (mqMobile.matches) sidebar.classList.add("detail-mode");
@@ -1532,11 +1556,10 @@ async function loadTours() {
 
 function showStory(feature) {
   const p = feature.properties;
-  // A story with a deep dive opens straight into its paged chapter series.
-  if (!activeDossier && !activeTour && dossiersByAnchor["story:" + p.id]) {
-    openDossier(dossiersByAnchor["story:" + p.id]);
-    return;
-  }
+  const anchor = "story:" + p.id;
+  // Free-browse: a deep-dive pin shows a photo-first card whose CTA opens the
+  // chapters. In a tour/dossier we keep the full inline card (no nested dive).
+  const hasDeep = !activeDossier && !activeTour && !!dossiersByAnchor[anchor];
   const coords = feature.geometry.coordinates;
   const period = periodOf(p);
 
@@ -1547,9 +1570,11 @@ function showStory(feature) {
   openDetail(`
     ${mediaHtml(mediaList(p))}
     <h3>${p.title}</h3>
-    ${asArray(p.body).map((x) => `<p>${inlineMd(x)}</p>`).join("")}
+    ${hasDeep
+      ? `<p class="hook">${inlineMd(hookOf(p))}</p>${deepDiveCta(anchor)}`
+      : asArray(p.body).map((x) => `<p>${inlineMd(x)}</p>`).join("")}
     ${detailPapers(p)}
-    ${relatedHtml(`story:${p.id}`)}
+    ${relatedHtml(anchor)}
     <span class="source">Sources: ${p.source}</span>`);
 
   if (!suppressFly) flyToFeature(feature);
@@ -1558,12 +1583,8 @@ function showStory(feature) {
 
 function showBuilding(feature) {
   const p = feature.properties;
-  // A landmark with a deep dive opens straight into its mother-pin series.
-  console.log("[showBuilding]", p.id, "| dossier match:", !!dossiersByAnchor["building:" + p.id], "| activeDossier:", !!activeDossier, "| activeTour:", !!activeTour, "| anchors loaded:", Object.keys(dossiersByAnchor).length);
-  if (!activeDossier && !activeTour && dossiersByAnchor["building:" + p.id]) {
-    openDossier(dossiersByAnchor["building:" + p.id]);
-    return;
-  }
+  const anchor = "building:" + p.id;
+  const hasDeep = !activeDossier && !activeTour && !!dossiersByAnchor[anchor];
   const coords = feature.geometry.coordinates;
   const period = periodOf(p);
   // Nested props arrive as JSON strings from map click events, as arrays from raw GeoJSON.
@@ -1582,10 +1603,11 @@ function showBuilding(feature) {
   openDetail(`
     ${mediaHtml(mediaList(p))}
     <h3>${p.name}</h3>
-    <ul class="timeline">${timelineHtml}</ul>
-    ${storiesHtml}
+    ${hasDeep
+      ? `<p class="hook">${inlineMd(hookOf(p))}</p>${deepDiveCta(anchor)}`
+      : `<ul class="timeline">${timelineHtml}</ul>${storiesHtml}`}
     ${detailPapers(p)}
-    ${relatedHtml(`building:${p.id}`)}
+    ${relatedHtml(anchor)}
     <span class="source">Sources: ${p.source}</span>`);
 
   if (!suppressFly) flyToFeature(feature);
@@ -1594,11 +1616,8 @@ function showBuilding(feature) {
 
 function showStreet(feature) {
   const p = feature.properties;
-  // A street with a deep dive opens straight into its mother-pin series.
-  if (!activeDossier && !activeTour && dossiersByAnchor["street:" + p.id]) {
-    openDossier(dossiersByAnchor["street:" + p.id]);
-    return;
-  }
+  const anchor = "street:" + p.id;
+  const hasDeep = !activeDossier && !activeTour && !!dossiersByAnchor[anchor];
   const timeline = typeof p.timeline === "string" ? JSON.parse(p.timeline) : (p.timeline || []);
   document.querySelectorAll("#story-list li, #building-list li, #people-list li, #street-list li").forEach((li) => {
     li.classList.toggle("active", li.dataset.id === p.id && li.closest("#street-list") !== null);
@@ -1610,9 +1629,11 @@ function showStreet(feature) {
     ${mediaHtml(mediaList(p))}
     <h3>${p.name}</h3>
     <div class="uses"><span><strong>Street</strong></span></div>
-    <ul class="timeline">${timelineHtml}</ul>
+    ${hasDeep
+      ? `<p class="hook">${inlineMd(hookOf(p))}</p>${deepDiveCta(anchor)}`
+      : `<ul class="timeline">${timelineHtml}</ul>`}
     ${detailPapers(p)}
-    ${relatedHtml(`street:${p.id}`)}
+    ${relatedHtml(anchor)}
     <span class="source">Sources: ${p.source}</span>`);
   if (!suppressFly) map.fitBounds(featureBounds(feature), { padding: 70, maxZoom: 15.5, duration: 800 });
   else if (mqMobile.matches) setSheet(true);
@@ -1799,11 +1820,8 @@ async function loadBuildings() {
 
 function showPerson(feature) {
   const p = feature.properties;
-  // A person with a life deep dive opens straight into their mother-pin series.
-  if (!activeDossier && !activeTour && dossiersByAnchor["person:" + p.id]) {
-    openDossier(dossiersByAnchor["person:" + p.id]);
-    return;
-  }
+  const anchor = "person:" + p.id;
+  const hasDeep = !activeDossier && !activeTour && !!dossiersByAnchor[anchor];
   const coords = feature.geometry.coordinates;
   const period = periodOf(p);
   const body =
@@ -1821,9 +1839,11 @@ function showPerson(feature) {
     ${mediaHtml(mediaList(p))}
     <h3>${p.name}</h3>
     <div class="uses"><span><strong>Place</strong> ${p.place}</span></div>
-    ${body.map((para) => `<p>${para}</p>`).join("")}
+    ${hasDeep
+      ? `<p class="hook">${inlineMd(hookOf(p))}</p>${deepDiveCta(anchor)}`
+      : body.map((para) => `<p>${inlineMd(para)}</p>`).join("")}
     ${detailPapers(p)}
-    ${relatedHtml(`person:${p.id}`)}
+    ${relatedHtml(anchor)}
     <span class="source">Sources: ${p.source}</span>`);
 
   if (!suppressFly) flyToFeature(feature);
