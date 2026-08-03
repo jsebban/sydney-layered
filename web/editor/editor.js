@@ -32,7 +32,10 @@ const SCHEMA = {
     ["summary","Summary","textarea"],["timeline","Timeline","timeline"],
     ["related","Related keys (one per line)","keys"],["source","Source","text"],
     ["images","Images (multiple = swipeable carousel)","images"]],
-  dossier: [["title","Title","text"],["anchor","Anchor","readonly"],["chapters","Chapters","chapters"]],
+  dossier: [["title","Title","text"],["anchor","Anchor","readonly"],
+    ["cover","Cover (hero image + hook)","cover"],
+    ["absorb","Absorbed pins (one type:id per line — folded into this pin on the map)","keys"],
+    ["chapters","Chapters","chapters"]],
 };
 
 // ---- state --------------------------------------------------------------
@@ -113,7 +116,11 @@ function createDossier() {
   }
   let id = fid;
   if (col.raw.some((d) => d.id === id)) id = `${type}-${fid}`;
-  const d = { id, anchor, title: "", chapters: [{ ref: anchor }] };
+  const d = {
+    id, anchor, title: "", format: "library",
+    cover: { image: "", hook: "" },
+    chapters: [{ title: "", hook: "", image: "", beats: [{ heading: "", body: [""], images: [] }] }],
+  };
   col.raw.push(d);
   col.items.push({ key: anchor, type: "dossier", props: d, get name() { return d.title || d.id; } });
   markDirty(); renderTabs(); renderList(); selectItem(anchor);
@@ -204,6 +211,7 @@ function deleteFeature(key) {
   const refs = [];
   for (const d of (COL.dossiers ? COL.dossiers.raw : [])) {
     if (d.anchor === key) refs.push(`anchors the deep dive "${d.title || d.id}"`);
+    if ((d.absorb || []).includes(key)) refs.push(`is absorbed into "${d.title || d.id}"`);
     for (const ch of d.chapters || []) if (ch.ref === key) refs.push(`is a chapter in "${d.title || d.id}"`);
   }
   let msg = `Delete the pin "${it.name}" (${key})?\nThis removes it from the map. Save to confirm.`;
@@ -334,51 +342,132 @@ function buildField(it, key, label, kind) {
     };
     draw(); wrap.append(host); return wrap;
   }
+  if (kind === "cover") {
+    const c = p.cover || (p.cover = { image: "", hook: "" });
+    const img = el("input", { type: "text", placeholder: "Cover image URL", value: c.image || "" });
+    img.addEventListener("input", () => { c.image = img.value; onEdit(); });
+    const hook = el("textarea", { rows: "2", placeholder: "One-sentence hook shown under the title" });
+    hook.value = c.hook || "";
+    hook.addEventListener("input", () => { c.hook = hook.value; onEdit(); });
+    wrap.append(img, hook); return wrap;
+  }
   if (kind === "chapters") {
-    let arr = Array.isArray(p[key]) ? p[key] : (p[key] = []);
+    const arr = Array.isArray(p[key]) ? p[key] : (p[key] = []);
     const host = el("div");
-    const sync = () => { p[key] = arr; onEdit(); };
+    const sync = onEdit;
+
+    const sub = (label, node) => el("div", { class: "field" }, [el("label", {}, label), node]);
+    const textInput = (obj, k, ph, after) => {
+      const i = el("input", { type: "text", placeholder: ph || "", value: obj[k] || "" });
+      i.addEventListener("input", () => { obj[k] = i.value; sync(); if (after) after(); });
+      return i;
+    };
+    const parasEditor = (obj, k) => {
+      let body = Array.isArray(obj[k]) ? obj[k].slice() : (obj[k] ? [obj[k]] : []);
+      const bhost = el("div");
+      const bsync = () => { obj[k] = body.slice(); sync(); };
+      const bdraw = () => {
+        bhost.innerHTML = "";
+        body.forEach((para, bi) => {
+          const ta = el("textarea"); ta.value = para;
+          ta.addEventListener("input", () => { body[bi] = ta.value; bsync(); });
+          const up = el("button", { type: "button", onclick: () => { if (bi) { [body[bi-1],body[bi]]=[body[bi],body[bi-1]]; bsync(); bdraw(); } } }, "↑");
+          const dn = el("button", { type: "button", onclick: () => { if (bi<body.length-1) { [body[bi+1],body[bi]]=[body[bi],body[bi+1]]; bsync(); bdraw(); } } }, "↓");
+          const rm = el("button", { type: "button", onclick: () => { body.splice(bi,1); bsync(); bdraw(); } }, "✕");
+          bhost.append(el("div", { class: "para" }, [ta, el("div", { class: "pbtns" }, [up, dn, rm])]));
+        });
+        bhost.append(el("button", { type: "button", class: "additem", onclick: () => { body.push(""); bsync(); bdraw(); } }, "+ paragraph"));
+      };
+      bdraw();
+      return bhost;
+    };
+    const ytId = (v) => {
+      v = (v || "").trim();
+      if (/^[A-Za-z0-9_-]{11}$/.test(v)) return v;
+      const m = v.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+      return m ? m[1] : null;
+    };
+    // Film: a YouTube ID/URL or a direct video-file URL; Sound: an audio-file URL.
+    const filmEditor = (b) => {
+      const box = el("div", { class: "av" });
+      const v = b.video || {};
+      const src = el("input", { type: "text", placeholder: "YouTube ID / YouTube URL / video file URL", value: v.youtube || v.url || "" });
+      const cap = el("input", { type: "text", placeholder: "Caption", value: v.caption || "" });
+      const lnk = el("input", { type: "text", placeholder: "Source / credit link (optional)", value: v.link || "" });
+      const apply = () => {
+        const s = src.value.trim();
+        if (!s) { delete b.video; sync(); return; }
+        const id = ytId(s);
+        b.video = { ...(id ? { youtube: id } : { url: s }), caption: cap.value, link: lnk.value };
+        sync();
+      };
+      [src, cap, lnk].forEach((i) => i.addEventListener("input", apply));
+      box.append(src, cap, lnk);
+      return box;
+    };
+    const soundEditor = (b) => {
+      const box = el("div", { class: "av" });
+      const a = b.audio || {};
+      const src = el("input", { type: "text", placeholder: "Audio file URL (mp3/ogg)", value: a.url || "" });
+      const lab = el("input", { type: "text", placeholder: "Label, e.g. Listen: the steel singing", value: a.label || "" });
+      const cap = el("input", { type: "text", placeholder: "Caption / credit", value: a.caption || "" });
+      const lnk = el("input", { type: "text", placeholder: "Source link (optional)", value: a.link || "" });
+      const apply = () => {
+        if (!src.value.trim()) { delete b.audio; sync(); return; }
+        b.audio = { url: src.value.trim(), label: lab.value, caption: cap.value, link: lnk.value };
+        sync();
+      };
+      [src, lab, cap, lnk].forEach((i) => i.addEventListener("input", apply));
+      box.append(src, lab, cap, lnk);
+      return box;
+    };
+
     const draw = () => {
       host.innerHTML = "";
       arr.forEach((ch, idx) => {
-        const box = el("div", { class: "chapter" });
-        const up = el("button", { type: "button", onclick: () => { if (idx) { [arr[idx-1],arr[idx]]=[arr[idx],arr[idx-1]]; sync(); draw(); } } }, "↑");
-        const dn = el("button", { type: "button", onclick: () => { if (idx<arr.length-1) { [arr[idx+1],arr[idx]]=[arr[idx],arr[idx+1]]; sync(); draw(); } } }, "↓");
-        const rm = el("button", { type: "button", onclick: () => { arr.splice(idx,1); sync(); draw(); } }, "✕");
-        const ctrls = el("div", { class: "pbtns", style: "flex-direction:row;gap:4px" }, [up, dn, rm]);
-        if ("ref" in ch) {
-          box.append(el("div", { class: "chead" }, [el("span", { class: "reftag" }, `Chapter ${idx+1} · reference`), ctrls]));
-          const i = el("input", { type: "text", value: ch.ref || "" });
-          i.addEventListener("input", () => { ch.ref = i.value; sync(); }); box.append(i);
-        } else {
-          box.append(el("div", { class: "chead" }, [el("span", { class: "reftag" }, `Chapter ${idx+1}`), ctrls]));
-          const h = el("input", { type: "text", value: ch.heading || "" }); h.addEventListener("input", () => { ch.heading = h.value; sync(); });
-          box.append(el("div", { class: "field" }, [el("label", {}, "Heading"), h]));
-          // body as paragraphs
-          let body = Array.isArray(ch.body) ? ch.body : (ch.body ? [ch.body] : []);
-          const bhost = el("div");
-          const bsync = () => { ch.body = body.slice(); sync(); };
-          const bdraw = () => {
-            bhost.innerHTML = "";
-            body.forEach((para, bi) => {
-              const ta = el("textarea"); ta.value = para;
-              ta.addEventListener("input", () => { body[bi] = ta.value; bsync(); });
-              const brm = el("button", { type: "button", onclick: () => { body.splice(bi,1); bsync(); bdraw(); } }, "✕");
-              bhost.append(el("div", { class: "para" }, [ta, el("div", { class: "pbtns" }, [brm])]));
-            });
-            bhost.append(el("button", { type: "button", class: "additem", onclick: () => { body.push(""); bsync(); bdraw(); } }, "+ paragraph"));
-          };
-          bdraw();
-          box.append(el("div", { class: "field" }, [el("label", {}, "Body"), bhost]));
-          const ihost = el("div");
-          imageEditor(ihost, ch, sync);
-          box.append(el("div", { class: "field" }, [el("label", {}, "Images (multiple = swipeable carousel)"), ihost]));
-        }
+        if (!Array.isArray(ch.beats)) ch.beats = []; // legacy chapter safety net
+        const box = el("details", { class: "chapter" });
+        const sum = el("summary");
+        const setSum = () => { sum.textContent = `Chapter ${idx + 1} · ${ch.title || "untitled"} · ${ch.beats.length} beat${ch.beats.length === 1 ? "" : "s"}`; };
+        setSum();
+        box.append(sum);
+        const up = el("button", { type: "button", onclick: () => { if (idx) { [arr[idx-1],arr[idx]]=[arr[idx],arr[idx-1]]; sync(); draw(); } } }, "↑ chapter");
+        const dn = el("button", { type: "button", onclick: () => { if (idx<arr.length-1) { [arr[idx+1],arr[idx]]=[arr[idx],arr[idx+1]]; sync(); draw(); } } }, "↓ chapter");
+        const rm = el("button", { type: "button", class: "danger", onclick: () => { if (window.confirm(`Delete chapter "${ch.title || idx + 1}" and its beats?`)) { arr.splice(idx,1); sync(); draw(); } } }, "✕ delete");
+        box.append(el("div", { class: "pbtns", style: "flex-direction:row;gap:4px;margin:6px 0" }, [up, dn, rm]));
+        box.append(sub("Title", textInput(ch, "title", "Chapter title", setSum)));
+        box.append(sub("Hook (one line on the chapter card)", textInput(ch, "hook")));
+        box.append(sub("Card image URL (blank = cover image)", textInput(ch, "image")));
+
+        const bwrap = el("div");
+        const bdraw = () => {
+          bwrap.innerHTML = "";
+          ch.beats.forEach((b, bi) => {
+            const bbox = el("details", { class: "chapter beat" });
+            const bsum = el("summary");
+            const setBsum = () => { bsum.textContent = `Beat ${bi + 1} · ${b.heading || "untitled"}`; };
+            setBsum();
+            bbox.append(bsum);
+            const bup = el("button", { type: "button", onclick: () => { if (bi) { [ch.beats[bi-1],ch.beats[bi]]=[ch.beats[bi],ch.beats[bi-1]]; sync(); bdraw(); setSum(); } } }, "↑ beat");
+            const bdn = el("button", { type: "button", onclick: () => { if (bi<ch.beats.length-1) { [ch.beats[bi+1],ch.beats[bi]]=[ch.beats[bi],ch.beats[bi+1]]; sync(); bdraw(); setSum(); } } }, "↓ beat");
+            const brm = el("button", { type: "button", class: "danger", onclick: () => { if (window.confirm(`Delete beat "${b.heading || bi + 1}"?`)) { ch.beats.splice(bi,1); sync(); bdraw(); setSum(); } } }, "✕ delete");
+            bbox.append(el("div", { class: "pbtns", style: "flex-direction:row;gap:4px;margin:6px 0" }, [bup, bdn, brm]));
+            bbox.append(sub("Heading", textInput(b, "heading", "", setBsum)));
+            bbox.append(sub("Body", parasEditor(b, "body")));
+            const ihost = el("div");
+            imageEditor(ihost, b, sync);
+            bbox.append(sub("Photos (multiple = swipeable carousel)", ihost));
+            bbox.append(sub("Film", filmEditor(b)));
+            bbox.append(sub("Sound", soundEditor(b)));
+            bwrap.append(bbox);
+          });
+          bwrap.append(el("button", { type: "button", class: "additem", onclick: () => { ch.beats.push({ heading: "", body: [""], images: [] }); sync(); bdraw(); setSum(); } }, "+ beat"));
+        };
+        bdraw();
+        box.append(sub("Beats (one swipeable screen each)", bwrap));
         host.append(box);
       });
-      host.append(el("button", { type: "button", class: "additem", onclick: () => { arr.push({ heading: "", body: [""] }); sync(); draw(); } }, "+ text chapter"));
-      host.append(" ");
-      host.append(el("button", { type: "button", class: "additem", onclick: () => { arr.push({ ref: "" }); sync(); draw(); } }, "+ reference chapter"));
+      host.append(el("button", { type: "button", class: "additem", onclick: () => { arr.push({ title: "", hook: "", image: "", beats: [{ heading: "", body: [""], images: [] }] }); sync(); draw(); } }, "+ chapter"));
     };
     draw(); wrap.append(host); return wrap;
   }
@@ -391,7 +480,20 @@ function collectText(it) {
   for (const k of ["name", "title", "summary", "role"]) if (p[k]) parts.push(p[k]);
   for (const k of ["body", "stories"]) if (Array.isArray(p[k])) parts.push(p[k].join("\n")); else if (p[k]) parts.push(p[k]);
   if (Array.isArray(p.timeline)) parts.push(p.timeline.map((t) => t.event).join("\n"));
-  if (Array.isArray(p.chapters)) for (const c of p.chapters) { if (c.heading) parts.push(c.heading); if (c.body) parts.push(Array.isArray(c.body) ? c.body.join("\n") : c.body); if (Array.isArray(c.images)) for (const im of c.images) { if (im.caption) parts.push(im.caption); } else if (c.image_caption) parts.push(c.image_caption); }
+  if (p.cover && p.cover.hook) parts.push(p.cover.hook);
+  if (Array.isArray(p.chapters)) for (const c of p.chapters) {
+    for (const k of ["title", "hook", "heading"]) if (c[k]) parts.push(c[k]);
+    if (c.body) parts.push(Array.isArray(c.body) ? c.body.join("\n") : c.body);
+    if (Array.isArray(c.images)) for (const im of c.images) { if (im.caption) parts.push(im.caption); }
+    else if (c.image_caption) parts.push(c.image_caption);
+    for (const b of c.beats || []) {
+      if (b.heading) parts.push(b.heading);
+      if (b.body) parts.push(Array.isArray(b.body) ? b.body.join("\n") : b.body);
+      for (const im of b.images || []) if (im.caption) parts.push(im.caption);
+      if (b.video && b.video.caption) parts.push(b.video.caption);
+      if (b.audio) parts.push([b.audio.label, b.audio.caption].filter(Boolean).join("\n"));
+    }
+  }
   return parts.join("\n");
 }
 function hasAiTell(t) { const l = t.toLowerCase(); return AI_TELLS.some((w) => l.includes(w)) || /\bnot\b[^.]{0,40}\bbut\b/i.test(t); }
@@ -450,7 +552,24 @@ function previewHtml(it) {
     h += `<ul class="tl">${p.timeline.map((t) => `<li><span class="y">${esc(t.year)}</span><span>${hi(t.event)}</span></li>`).join("")}</ul>`;
   if (p.body) h += paras(p.body);
   if (Array.isArray(p.stories)) h += paras(p.stories);
-  if (Array.isArray(p.chapters)) h += `<p class="muted">${p.chapters.length} chapters</p>` + p.chapters.filter((c)=>!c.ref).map((c)=>`<h3>${hi(c.heading||"")}</h3>${paras(c.body)}`).join("");
+  if (Array.isArray(p.chapters)) {
+    if (p.cover && p.cover.hook) h += `<p><em>${hi(p.cover.hook)}</em></p>`;
+    const nBeats = p.chapters.reduce((s, c) => s + (c.beats ? c.beats.length : 0), 0);
+    h += `<p class="muted">${p.chapters.length} chapters${nBeats ? ` · ${nBeats} beats` : ""}</p>`;
+    h += p.chapters.map((c) => {
+      if (c.beats) {
+        return `<h3>${hi(c.title || "")}</h3>${c.hook ? `<p class="muted"><em>${hi(c.hook)}</em></p>` : ""}` +
+          c.beats.map((b) => {
+            const media = [];
+            if ((b.images || []).length) media.push(`${b.images.length} photo${b.images.length > 1 ? "s" : ""}`);
+            if (b.video) media.push("film");
+            if (b.audio) media.push("sound");
+            return `<p><strong>${hi(b.heading || "")}</strong>${media.length ? ` <span class="muted">(${media.join(" · ")})</span>` : ""}</p>${paras(b.body)}`;
+          }).join("");
+      }
+      return c.ref ? "" : `<h3>${hi(c.heading || "")}</h3>${paras(c.body)}`; // legacy chapter
+    }).join("");
+  }
   if (p.source) h += `<p class="muted">Sources: ${hi(p.source)}</p>`;
   return h;
 }

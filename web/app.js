@@ -276,6 +276,17 @@ window.addEventListener("pageshow", () => setTimeout(fitMap, 100));
 const SHOW_BY_TYPE = { story: showStory, building: showBuilding, people: showPerson, street: showStreet };
 map.on("click", (e) => {
   if (creditsEl && creditsEl.classList.contains("open")) { setCredits(false); return; }
+  // Mid-tour, the numbered stop badges are the tap targets: jump to that stop.
+  if (activeTour && map.getLayer("tour-stop-badges")) {
+    const bp = mqTouch.matches ? 16 : 6;
+    const bbox = [[e.point.x - bp, e.point.y - bp], [e.point.x + bp, e.point.y + bp]];
+    const hits = map.queryRenderedFeatures(bbox, { layers: ["tour-stop-badges"] });
+    if (hits.length) {
+      clearTourTimer();
+      showTourStop(+hits[0].properties.label - 1);
+      return;
+    }
+  }
   const layers = ["story-points", "building-points", "people-points"].filter((l) => map.getLayer(l));
   const pad = mqTouch.matches ? 18 : 5; // generous tap target on phones
   const box = [[e.point.x - pad, e.point.y - pad], [e.point.x + pad, e.point.y + pad]];
@@ -658,6 +669,15 @@ const TYPES = [
 ];
 const typeVisible = { story: true, building: true, person: true, street: true };
 
+// --- Visual hierarchy: every pin is always visible, but rank (stamped by
+// pipeline/rank_features.py) grades size and opacity by zoom. At metro zoom
+// the ~20 rank-1 icons read large and labelled while the long tail is fine
+// grain that says "there's more here"; by street zoom everything is a full
+// pin. Nothing is hidden, so exploration always has somewhere to go.
+function rankRamp(z10, z13, z16) {
+  const m = (v) => (Array.isArray(v) ? ["match", ["get", "rank"], 1, v[0], 2, v[1], v[2]] : v);
+  return ["interpolate", ["linear"], ["zoom"], 10, m(z10), 13, m(z13), 16, m(z16)];
+}
 function combinedFilter() {
   const parts = [];
   if (activePeriod !== "now") parts.push(["in", activePeriod, ["get", "periods"]]);
@@ -829,6 +849,15 @@ function wireCarousels(root) {
       x0 = null;
     });
     show(0);
+    // Auto-rotate so a multi-photo set reads as a gallery, not a single image.
+    // The first touch or click hands control to the user for good.
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const spin = setInterval(() => {
+        if (!c.isConnected) { clearInterval(spin); return; } // container was re-rendered
+        if (!document.hidden) show(i + 1);
+      }, 4500);
+      c.addEventListener("pointerdown", () => clearInterval(spin), { once: true });
+    }
   });
 }
 
@@ -1163,17 +1192,29 @@ function scheduleAdvance() {
 function setTourPlaying(on) {
   tourPlaying = on;
   clearTourTimer();
-  storyDetail.classList.toggle("playing", on); // drives the Ken-Burns image zoom
-  const btn = document.querySelector(".tplay");
-  if (btn) btn.innerHTML = on ? "❚❚ Pause" : "▶ Play";
+  const el = tourStopEl();
+  if (el) {
+    el.classList.toggle("playing", on);
+    const btn = el.querySelector(".tplay");
+    if (btn) { btn.innerHTML = on ? "❚❚" : "▶"; btn.title = on ? "Pause" : "Auto-play"; }
+  }
   if (on) scheduleAdvance();
 }
 
 function exitTour() {
   clearTourTimer();
   tourPlaying = false;
-  storyDetail.classList.remove("playing");
   activeTour = null;
+  clearTimeout(showTourStop._t);
+  const el = tourStopEl();
+  if (el) {
+    el.classList.remove("show", "playing");
+    setTimeout(() => { if (!activeTour) { el.hidden = true; el.innerHTML = ""; } }, 420);
+  }
+  const pill = document.getElementById("ts-pill");
+  if (pill) pill.remove();
+  const intro = document.getElementById("ts-intro");
+  if (intro) intro.remove();
   map.getSource("tour-route").setData(EMPTY_FC);
   map.getSource("tour-stops").setData(EMPTY_FC);
   map.easeTo({ pitch: 0, bearing: 0, duration: 600 });
@@ -1187,20 +1228,74 @@ function exitTour() {
   closeStory();
 }
 
+const tourStopEl = () => document.getElementById("tourstop");
+
+// Show/hide the stop overlay. Hidden-with-a-tour-running leaves a bottom pill
+// so walkers can see the map (and their guide dot) between stops.
+function setTourOverlay(open) {
+  const el = tourStopEl();
+  let pill = document.getElementById("ts-pill");
+  if (open) {
+    el.hidden = false;
+    void el.offsetHeight; // reflow so the slide-up transition runs
+    el.classList.add("show");
+    if (pill) pill.remove();
+  } else {
+    el.classList.remove("show");
+    if (!activeTour) return;
+    if (!pill) {
+      pill = document.createElement("button");
+      pill.id = "ts-pill";
+      pill.type = "button";
+      pill.addEventListener("click", () => setTourOverlay(true));
+      document.body.appendChild(pill);
+    }
+    pill.textContent = `▲ Stop ${tourIndex + 1} of ${activeTour.stops.length} · ${activeTour.title}`;
+  }
+}
+
+// One stop's content as a full-screen "beat" (same layout language as the
+// chapter reader: media pane + words pane, split on wide screens).
+function tourStopContent(stop, feature) {
+  const p = feature.properties;
+  const timeline = typeof p.timeline === "string" ? JSON.parse(p.timeline) : (p.timeline || []);
+  const stories = typeof p.stories === "string" ? JSON.parse(p.stories) : (p.stories || []);
+  const media = mediaList(p).slice();
+  if (stop.image) media.unshift({ url: stop.image, caption: stop.caption || "", link: "" });
+  const paras = asArray(p.body).concat(Array.isArray(stories) ? stories : []);
+  const branches = Array.isArray(stop.branches) && stop.branches.length
+    ? `<div class="tour-branches"><span class="tour-branch-label">Choose a path</span>${stop.branches
+        .map((b, bi) => `<button class="tbranch" data-bi="${bi}">${b.label} ›</button>`)
+        .join("")}</div>`
+    : "";
+  return `<div class="beat beat-in${media.length ? "" : " beat-textonly"}">
+    <div class="beat-lead">${mediaHtml(media)}</div>
+    <div class="beat-words">
+      ${stop.note ? `<p class="ts-note">${inlineMd(stop.note)}</p>` : ""}
+      <h2 class="beat-h">${p.title || p.name}</h2>
+      ${paras.map((x) => `<p class="beat-p">${inlineMd(x)}</p>`).join("")}
+      ${timeline.length ? `<ul class="timeline ts-timeline">${timeline.map((t) => `<li><span class="tl-year">${t.year}</span><span>${t.event}</span></li>`).join("")}</ul>` : ""}
+      ${stop.quote ? `<blockquote class="tour-quote">${inlineMd(stop.quote)}</blockquote>` : ""}
+      ${branches}
+    </div>
+    <div class="beat-film"></div>
+  </div>`;
+}
+
 function showTourStop(i) {
+  const intro = document.getElementById("ts-intro");
+  if (intro) intro.remove();
   tourIndex = i;
   const stop = activeTour.stops[i];
   const feature = featureIndex[stop.ref];
-  const type = stop.ref.split(":")[0];
-  // Render the feature panel but keep the map still — we drive the camera ourselves.
-  suppressFly = true;
-  ({ story: showStory, building: showBuilding, person: showPerson, street: showStreet })[type](feature);
-  suppressFly = false;
+  const last = i === activeTour.stops.length - 1;
+  const el = tourStopEl();
 
-  // Per-stop cinematic camera (falls back to a clean overhead framing).
+  // Fly first: the overlay drops while the camera travels, so every page turn
+  // shows the hop across the map before the next stop rises.
   const cam = stop.camera || {};
   map.flyTo({
-    center: feature.geometry.coordinates,
+    center: featureCenter(feature),
     zoom: cam.zoom ?? Math.max(map.getZoom(), 15.5),
     pitch: cam.pitch ?? 0,
     bearing: cam.bearing ?? 0,
@@ -1209,42 +1304,38 @@ function showTourStop(i) {
     essential: true,
   });
 
-  const last = i === activeTour.stops.length - 1;
-  const media =
-    (stop.image ? `<img class="tour-stop-img" src="${stop.image}" alt="${stop.caption || ""}" loading="lazy" />${stop.caption ? `<span class="tour-stop-cap">${stop.caption}</span>` : ""}` : "") +
-    (stop.quote ? `<blockquote class="tour-quote">${stop.quote}</blockquote>` : "");
-  const branches = Array.isArray(stop.branches) && stop.branches.length
-    ? `<div class="tour-branches"><span class="tour-branch-label">Choose a path</span>${stop.branches
-        .map((b, bi) => `<button class="tbranch" data-bi="${bi}">${b.label} ›</button>`)
-        .join("")}</div>`
-    : "";
-
-  const nav = document.createElement("div");
-  nav.className = "tour-nav";
-  nav.innerHTML = `
-    <div class="tour-head"><strong>${activeTour.title}</strong><span>Stop ${i + 1} of ${activeTour.stops.length}</span></div>
-    ${stop.note ? `<p class="tour-note">${stop.note}</p>` : ""}
-    ${media}
-    ${branches}
-    <div class="tour-buttons">
-      <button class="tprev" ${i === 0 ? "disabled" : ""}>‹ Back</button>
-      <button class="tplay">${tourPlaying ? "❚❚ Pause" : "▶ Play"}</button>
-      <button class="tnext">${last ? "Finish" : "Next ›"}</button>
-      <button class="texit">End</button>
-    </div>`;
-  // Insert after the close button, above the image.
-  storyDetail.insertBefore(nav, storyDetail.children[1]);
-  storyDetail.classList.toggle("playing", tourPlaying);
-  nav.querySelector(".tprev").addEventListener("click", () => { clearTourTimer(); showTourStop(i - 1); });
-  nav.querySelector(".tnext").addEventListener("click", () => { clearTourTimer(); last ? exitTour() : showTourStop(i + 1); });
-  nav.querySelector(".tplay").addEventListener("click", () => setTourPlaying(!tourPlaying));
-  nav.querySelector(".texit").addEventListener("click", exitTour);
-  nav.querySelectorAll(".tbranch").forEach((btn) =>
-    btn.addEventListener("click", () => {
-      clearTourTimer();
-      followBranch(stop.branches[+btn.dataset.bi]);
-    })
-  );
+  const render = () => {
+    if (!activeTour) return; // the tour ended while we were mid-flight
+    el.innerHTML = `
+      <div class="rch-top">
+        <button class="ts-peek" type="button" title="See the map">▾ Map</button>
+        <span class="rch-count">${activeTour.title} · ${i + 1}/${activeTour.stops.length}</span>
+        <button class="reader-close texit" aria-label="End tour">×</button>
+      </div>
+      <div class="ts-scroll">${tourStopContent(stop, feature)}</div>
+      <div class="rch-nav">
+        <button class="rb-prev tprev" ${i === 0 ? "disabled" : ""}>‹ Back</button>
+        <button class="ts-play tplay" title="${tourPlaying ? "Pause" : "Auto-play"}">${tourPlaying ? "❚❚" : "▶"}</button>
+        <div class="rb-dots">${activeTour.stops.map((_, k) => `<span class="rb-dot ${k === i ? "on" : ""}"></span>`).join("")}</div>
+        <button class="rb-next tnext">${last ? "Finish" : "Next ›"}</button>
+      </div>`;
+    wireCarousels(el);
+    el.classList.toggle("playing", tourPlaying);
+    el.querySelector(".tprev").addEventListener("click", () => { clearTourTimer(); showTourStop(i - 1); });
+    el.querySelector(".tnext").addEventListener("click", () => { clearTourTimer(); last ? exitTour() : showTourStop(i + 1); });
+    el.querySelector(".tplay").addEventListener("click", () => setTourPlaying(!tourPlaying));
+    el.querySelector(".texit").addEventListener("click", exitTour);
+    el.querySelector(".ts-peek").addEventListener("click", () => setTourOverlay(false));
+    el.querySelectorAll(".tbranch").forEach((btn) =>
+      btn.addEventListener("click", () => { clearTourTimer(); followBranch(stop.branches[+btn.dataset.bi]); }));
+    el.querySelector(".ts-scroll").scrollTop = 0;
+    setTourOverlay(true);
+  };
+  // Slide the current stop away, let the flight breathe, then raise the next.
+  const wasShowing = !el.hidden && el.classList.contains("show");
+  el.classList.remove("show");
+  clearTimeout(showTourStop._t);
+  showTourStop._t = setTimeout(render, wasShowing ? 2100 : 1100);
 
   // Keep auto-play chaining.
   if (tourPlaying) scheduleAdvance();
@@ -1264,7 +1355,9 @@ function followBranch(branch) {
 function startTour(tour) {
   clearTourTimer();
   tourPlaying = false;
+  closeStory(); // drop any open card/sheet: the stop overlay is the tour UI
   activeTour = tour;
+  tourIndex = -1; // no stop open yet (the route overview shows first)
   document.querySelectorAll("#tour-list li").forEach((li) => {
     li.classList.toggle("active", li.dataset.id === tour.id);
   });
@@ -1273,10 +1366,12 @@ function startTour(tour) {
     setYear(tour.year);
   }
   const coords = tour.stops.map((s) => featureIndex[s.ref].geometry.coordinates);
+  // Walking tours carry a precomputed pedestrian path (pipeline/route_walks.py)
+  // that follows real streets and tracks; other tours draw straight hops.
   map.getSource("tour-route").setData({
     type: "Feature",
     properties: {},
-    geometry: { type: "LineString", coordinates: coords },
+    geometry: { type: "LineString", coordinates: tour.path || coords },
   });
   map.getSource("tour-stops").setData({
     type: "FeatureCollection",
@@ -1290,7 +1385,44 @@ function startTour(tour) {
   for (const t of TYPES) {
     if (map.getLayer(t.layer)) map.setLayoutProperty(t.layer, "visibility", "none");
   }
-  showTourStop(0);
+  // Show the whole route first: fit the camera to it and offer Start, so you
+  // can see where the tour goes (and tap any numbered stop) before diving in.
+  let bnds = null;
+  for (const c of tour.path || coords) bnds = bnds ? bnds.extend(c) : new maplibregl.LngLatBounds(c, c);
+  if (bnds) map.fitBounds(bnds, { padding: 80, maxZoom: 16, duration: 1200 });
+  showTourIntro(tour, coords);
+}
+
+// The pre-stop overview bar: title, size, and a Start button. Tapping a
+// numbered badge on the map (or arriving at a stop on foot) also starts it.
+function showTourIntro(tour, coords) {
+  let bar = document.getElementById("ts-intro");
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = "ts-intro";
+    document.body.appendChild(bar);
+  }
+  let dist = tour.walk_m || 0;
+  if (!dist) for (let i = 1; i < coords.length; i++) dist += metersBetween(coords[i - 1], coords[i]);
+  // real path distance at 4 km/h plus a few minutes' dwell per stop
+  const mins = tour.kind === "walk"
+    ? Math.round((dist / 4000 * 60 + tour.stops.length * 3) / 5) * 5
+    : Math.max(5, Math.round((tour.stops.length * 4) / 5) * 5);
+  const meta = [`${tour.stops.length} stops`,
+                tour.kind === "walk" ? `${(dist / 1000).toFixed(1)} km on foot` : null,
+                `~${mins} min`].filter(Boolean).join(" · ");
+  const canReroll = tour.id === "dynamic" && typeof window.regenWalkingTour === "function";
+  bar.innerHTML = `
+    <div class="tsi-text"><strong>${tour.title}</strong><span>${meta}</span></div>
+    ${canReroll ? `<button class="tsi-reroll" type="button" title="Different route">↻</button>` : ""}
+    <button class="tsi-start" type="button">▶ Start</button>
+    <button class="tsi-x" type="button" aria-label="End tour">✕</button>`;
+  bar.querySelector(".tsi-start").addEventListener("click", () => showTourStop(0));
+  bar.querySelector(".tsi-x").addEventListener("click", exitTour);
+  if (canReroll) bar.querySelector(".tsi-reroll").addEventListener("click", async (e) => {
+    e.target.disabled = true;
+    await window.regenWalkingTour();
+  });
 }
 
 // Fetch JSON with retries so a transient network blip never leaves the map empty.
@@ -1329,10 +1461,16 @@ async function loadDossiers() {
       // fold every associated feature (but not the landmark itself) into the mother pin
       if (ch.ref && ch.ref !== d.anchor) absorbedIds.add(ch.ref.split(":")[1]);
     }
+    // Library-format dossiers carry no chapter refs; an explicit absorb list
+    // folds features whose stories the chapters retell (e.g. BridgeClimb).
+    for (const key of d.absorb || []) {
+      if (key !== d.anchor) absorbedIds.add(key.split(":")[1]);
+    }
   }
   // Cross-link: every feature in a dossier is "in the same deep dive" as the others.
   for (const d of list) {
-    const keys = [d.anchor, ...d.chapters.filter((c) => c.ref).map((c) => c.ref)].filter((k) => featureIndex[k]);
+    const keys = [...new Set([d.anchor, ...d.chapters.filter((c) => c.ref).map((c) => c.ref), ...(d.absorb || [])])]
+      .filter((k) => featureIndex[k]);
     for (const k of keys) (dossierLinks[k] ||= []).push(...keys.filter((o) => o !== k));
   }
   console.log("[dossiers] loaded", Object.keys(dossiersByAnchor).length, "anchors");
@@ -1341,6 +1479,8 @@ async function loadDossiers() {
 }
 
 function exitDossier() {
+  const r = readerEl();
+  if (r && !r.hidden) { closeStoryMode(); return; } // full-screen reader open
   activeDossier = null;
   storyDetail.classList.remove("in-dossier");
   closeStory();
@@ -1402,6 +1542,29 @@ function openDossier(d, center) {
 // ============================================================================
 const readerEl = () => document.getElementById("reader");
 
+// A beat's film: either a YouTube embed ({youtube: "<id>"}) or a direct file
+// ({url, poster?}). Archival newsreels live on YouTube; files play natively.
+function videoHtml(v) {
+  if (!v) return "";
+  const credit = v.link ? ` · <a href="${v.link}" target="_blank" rel="noopener">source ↗</a>` : "";
+  const cap = v.caption || v.link ? `<span class="caption">${v.caption || ""}${credit}</span>` : "";
+  if (v.youtube) {
+    return `<div class="beat-video"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.youtube)}?enablejsapi=1" title="${escAttr(v.caption || "Video")}" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>${cap}`;
+  }
+  return `<div class="beat-video"><video controls playsinline preload="metadata"${v.poster ? ` poster="${escAttr(v.poster)}"` : ""} src="${escAttr(v.url)}"></video></div>${cap}`;
+}
+
+// A beat's sound ({url, label?, caption?, link?}) as a native player.
+function audioHtml(a) {
+  if (!a) return "";
+  const credit = a.link ? ` · <a href="${a.link}" target="_blank" rel="noopener">source ↗</a>` : "";
+  return `<div class="beat-audio">
+    <span class="beat-audio-label">♫ ${a.label || "Listen"}</span>
+    <audio controls preload="none" src="${escAttr(a.url)}"></audio>
+    <span class="caption">${a.caption || ""}${credit}</span>
+  </div>`;
+}
+
 function openStoryMode(d) {
   activeDossier = d;
   const r = readerEl();
@@ -1419,22 +1582,34 @@ function closeStoryMode() {
   closeStory(); // reset the sheet/detail-mode and drop back to the map
 }
 
+// "5 stories · 12 photos · film · sound" line for a chapter card.
+function chapterMediaMeta(c) {
+  const beats = c.beats || [];
+  const photos = beats.reduce((s, b) => s + mediaList(b).length, 0);
+  const parts = [`${beats.length} ${beats.length === 1 ? "story" : "stories"}`];
+  if (photos) parts.push(`${photos} ${photos === 1 ? "photo" : "photos"}`);
+  if (beats.some((b) => b.video)) parts.push("film");
+  if (beats.some((b) => b.audio)) parts.push("sound");
+  return parts.join(" · ");
+}
+
 function renderReaderCover(d) {
   const r = readerEl();
   const chaps = d.chapters.map((c, ci) => `
-    <button class="rc-chap" data-ci="${ci}" style="--chap-img:url('${asset(c.image || d.cover.image)}')">
-      <span class="rc-chap-img"></span>
-      <span class="rc-chap-meta">
+    <button class="rc-chap" data-ci="${ci}">
+      <span class="rc-chap-img" style="background-image:url('${asset(c.image || d.cover.image)}')">
         <span class="rc-chap-n">Chapter ${ci + 1}</span>
+      </span>
+      <span class="rc-chap-meta">
         <span class="rc-chap-name">${c.title}</span>
         ${c.hook ? `<span class="rc-chap-hook">${inlineMd(c.hook)}</span>` : ""}
+        <span class="rc-chap-count">${chapterMediaMeta(c)}<span class="rc-chap-go">Read ›</span></span>
       </span>
-      <span class="rc-chap-go">›</span>
     </button>`).join("");
   r.innerHTML = `
     <div class="reader-cover">
+      <button class="reader-close" aria-label="Close">×</button>
       <div class="rc-hero" style="background-image:url('${asset(d.cover.image)}')">
-        <button class="reader-close" aria-label="Close">×</button>
         <div class="rc-hero-grad"></div>
         <div class="rc-hero-text"><h1 class="rc-title">${d.title}</h1></div>
       </div>
@@ -1456,52 +1631,107 @@ function openReaderChapter(d, ci) {
   const r = readerEl();
   let bi = 0, x0 = null, y0 = null;
 
-  function renderBeat() {
-    const b = beats[bi];
-    const last = bi === beats.length - 1;
-    r.innerHTML = `
-      <div class="reader-chapter">
-        <div class="rch-top">
-          <button class="reader-back" aria-label="Back to chapters">‹ Chapters</button>
-          <span class="rch-count">${c.title} · ${bi + 1}/${beats.length}</span>
-          <button class="reader-close" aria-label="Close">×</button>
+  // Every beat mounts once into a horizontal track; paging slides the track,
+  // so images load a single time and never re-fetch as you move around.
+  // The lead/words/film panes are display:contents on phones (flat flow) and
+  // become a media-left / words-right split on wide screens.
+  const panels = beats.map((b) => {
+    const lead = mediaHtml(mediaList(b));
+    const film = videoHtml(b.video);
+    return `
+    <div class="rch-scroll">
+      <div class="beat${lead || film ? "" : " beat-textonly"}">
+        <div class="beat-lead">${lead}</div>
+        <div class="beat-words">
+          ${b.heading ? `<h2 class="beat-h">${inlineMd(b.heading)}</h2>` : ""}
+          ${asArray(b.body).map((x) => `<p class="beat-p">${inlineMd(x)}</p>`).join("")}
+          ${audioHtml(b.audio)}
         </div>
-        <div class="rch-scroll">
-          <div class="beat beat-in">
-            ${mediaHtml(mediaList(b))}
-            ${b.heading ? `<h2 class="beat-h">${inlineMd(b.heading)}</h2>` : ""}
-            ${asArray(b.body).map((x) => `<p class="beat-p">${inlineMd(x)}</p>`).join("")}
-          </div>
-        </div>
-        <div class="rch-nav">
-          <button class="rb-prev" ${bi === 0 ? "disabled" : ""}>‹ Back</button>
-          <div class="rb-dots">${beats.map((_, k) => `<span class="rb-dot ${k === bi ? "on" : ""}"></span>`).join("")}</div>
-          <button class="rb-next">${last ? "Chapters ›" : "Next ›"}</button>
-        </div>
-      </div>`;
-    wireCarousels(r);
-    r.querySelector(".reader-back").addEventListener("click", () => renderReaderCover(d));
-    r.querySelector(".reader-close").addEventListener("click", closeStoryMode);
-    r.querySelector(".rb-prev").addEventListener("click", () => { if (bi > 0) { bi--; renderBeat(); } });
-    r.querySelector(".rb-next").addEventListener("click", () => { last ? renderReaderCover(d) : (bi++, renderBeat()); });
-    const sc = r.querySelector(".rch-scroll");
-    sc.scrollTop = 0;
-    // horizontal swipe advances beats (vertical scroll still works for long text)
-    sc.addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
-    sc.addEventListener("touchend", (e) => {
-      if (x0 == null) return;
-      const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
-      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-        if (dx < 0 && bi < beats.length - 1) { bi++; renderBeat(); }
-        else if (dx > 0 && bi > 0) { bi--; renderBeat(); }
-      }
-      x0 = null;
+        <div class="beat-film">${film}</div>
+      </div>
+    </div>`;
+  }).join("");
+  r.innerHTML = `
+    <div class="reader-chapter">
+      <div class="rch-top">
+        <button class="reader-back" aria-label="Back to chapters">‹ Chapters</button>
+        <span class="rch-count"></span>
+        <button class="reader-close" aria-label="Close">×</button>
+      </div>
+      <div class="rch-viewport"><div class="rch-track">${panels}</div></div>
+      <div class="rch-nav">
+        <button class="rb-prev">‹ Back</button>
+        <div class="rb-dots">${beats.map(() => `<span class="rb-dot"></span>`).join("")}</div>
+        <button class="rb-next">Next ›</button>
+      </div>
+    </div>`;
+  wireCarousels(r);
+  // Off-screen panels sit outside the viewport, so lazy images would only
+  // start fetching mid-swipe — load everything in the chapter up front.
+  r.querySelectorAll(".rch-track img").forEach((im) => { im.loading = "eager"; });
+  const track = r.querySelector(".rch-track");
+  const scrolls = [...r.querySelectorAll(".rch-scroll")];
+  const dots = [...r.querySelectorAll(".rb-dot")];
+  const count = r.querySelector(".rch-count");
+  const prevBtn = r.querySelector(".rb-prev");
+  const nextBtn = r.querySelector(".rb-next");
+  const nextCh = ci < d.chapters.length - 1 ? d.chapters[ci + 1] : null;
+
+  function showBeat(n) {
+    bi = Math.max(0, Math.min(n, beats.length - 1));
+    track.style.transform = `translateX(${-bi * 100}%)`;
+    dots.forEach((dot, k) => dot.classList.toggle("on", k === bi));
+    count.textContent = `${c.title} · ${bi + 1}/${beats.length}`;
+    prevBtn.disabled = bi === 0;
+    // The last beat flows straight into the next chapter (the cover is always
+    // one tap away via "‹ Chapters"); only the final chapter returns to it.
+    nextBtn.textContent = bi === beats.length - 1
+      ? (nextCh ? `Next: ${nextCh.title} ›` : "Chapters ›")
+      : "Next ›";
+    // Silence the beats we're leaving (all panels stay mounted).
+    scrolls.forEach((s, k) => {
+      if (k === bi) return;
+      s.querySelectorAll("video, audio").forEach((m) => m.pause());
+      s.querySelectorAll(".beat-video iframe").forEach((f) => {
+        try { f.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', "*"); } catch (e) {}
+      });
     });
+    // Replay the cinematic entrance on the beat that just arrived.
+    scrolls.forEach((s, k) => { if (k !== bi) s.firstElementChild.classList.remove("beat-in"); });
+    const active = scrolls[bi].firstElementChild;
+    active.classList.remove("beat-in");
+    void active.offsetWidth; // restart the animation on revisits
+    active.classList.add("beat-in");
+    scrolls[bi].scrollTop = 0;
   }
-  renderBeat();
+
+  // Forward past the last beat rolls into the next chapter.
+  const advance = () => {
+    if (bi < beats.length - 1) showBeat(bi + 1);
+    else if (nextCh) openReaderChapter(d, ci + 1);
+    else renderReaderCover(d);
+  };
+  r.querySelector(".reader-back").addEventListener("click", () => renderReaderCover(d));
+  r.querySelector(".reader-close").addEventListener("click", closeStoryMode);
+  prevBtn.addEventListener("click", () => { if (bi > 0) showBeat(bi - 1); });
+  nextBtn.addEventListener("click", advance);
+  // horizontal swipe advances beats (vertical scroll still works for long text)
+  const vp = r.querySelector(".rch-viewport");
+  vp.addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  vp.addEventListener("touchend", (e) => {
+    if (x0 == null) return;
+    if (e.target.closest(".carousel")) { x0 = null; return; } // the carousel owns its own swipes
+    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      if (dx < 0) advance();
+      else if (bi > 0) showBeat(bi - 1);
+    }
+    x0 = null;
+  });
+  showBeat(0);
 }
 
-const TOUR_KIND_LABEL = { time: "Through time", theme: "By theme", walk: "Walk" };
+const TOUR_KIND_LABEL = { time: "Virtual · through time", theme: "Virtual · by theme", walk: "Walking tour" };
 
 function eraName(y) {
   y = +y;
@@ -1560,7 +1790,7 @@ function tourCard(tour) {
 function buildTourFilter(list, kindsPresent) {
   const bar = document.createElement("div");
   bar.className = "tour-filter";
-  const opts = [["all", "All"], ["time", "Through time"], ["theme", "By theme"], ["walk", "Walks"]]
+  const opts = [["all", "All"], ["walk", "Walking"], ["time", "Virtual · time"], ["theme", "Virtual · themes"]]
     .filter(([k]) => k === "all" || kindsPresent.has(k));
   bar.innerHTML = opts
     .map(([k, l], i) => `<button class="tf-chip${i === 0 ? " active" : ""}" data-kind="${k}">${l}</button>`)
@@ -1577,43 +1807,176 @@ function buildTourFilter(list, kindsPresent) {
   return bar;
 }
 
-// Assemble an ephemeral tour from features matching a theme (+ optional era),
-// ordered nearest-to-nearest from the northernmost match.
-function buildDynamicTour(theme, era) {
+// --- Water awareness for generated walking routes ---
+// web/data/water.geojson holds the major bodies (coarse, ~250 m shoreline
+// error, built by pipeline/lint_tours.py). Loaded lazily on first use.
+let waterBodies = null; // [{bbox, geometry}]
+async function ensureWater() {
+  if (waterBodies) return;
+  try {
+    const gj = await fetchJSON("data/water.geojson?v=20260706a");
+    waterBodies = gj.features.map((f) => {
+      const ring = f.geometry.coordinates[0];
+      let m = [Infinity, Infinity], M = [-Infinity, -Infinity];
+      for (const [x, y] of ring) { if (x < m[0]) m[0] = x; if (y < m[1]) m[1] = y; if (x > M[0]) M[0] = x; if (y > M[1]) M[1] = y; }
+      return { bbox: [...m, ...M], geometry: f.geometry };
+    });
+  } catch (e) {
+    console.warn("water.geojson unavailable — walking legs won't be water-checked", e);
+    waterBodies = [];
+  }
+}
+// A leg "swims" when a sustained INTERIOR run of its samples (3+) lands in
+// big water. Wet runs touching either end don't count: pins legitimately sit
+// on wharves or commemorate the water itself, and that's not a crossing.
+function legCrossesWater(a, b) {
+  if (!waterBodies || !waterBodies.length) return false;
+  const N = 12;
+  const flags = [];
+  for (let k = 2; k < N - 1; k++) {
+    const t = k / N;
+    const pt = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+    flags.push(waterBodies.some((w) =>
+      pt[0] >= w.bbox[0] && pt[0] <= w.bbox[2] && pt[1] >= w.bbox[1] && pt[1] <= w.bbox[3] &&
+      pointInGeometry(pt, w.geometry)));
+  }
+  while (flags.length && flags[0]) flags.shift();
+  while (flags.length && flags[flags.length - 1]) flags.pop();
+  let run = 0;
+  for (const wet of flags) {
+    run = wet ? run + 1 : 0;
+    if (run >= 3) return true;
+  }
+  return false;
+}
+
+// Fetch a real pedestrian path through the given points (FOSSGIS OSRM, foot
+// profile — the same router pipeline/route_walks.py uses). Null on any failure;
+// the tour then falls back to straight dotted legs.
+async function fetchWalkPath(points) {
+  const locs = points.map((c) => `${c[0].toFixed(6)},${c[1].toFixed(6)}`).join(";");
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const r = await fetch(`https://routing.openstreetmap.de/routed-foot/route/v1/foot/${locs}?overview=full&geometries=geojson&steps=false`, { signal: ctrl.signal });
+    const d = await r.json();
+    if (d.code === "Ok" && d.routes && d.routes[0]) {
+      return { path: d.routes[0].geometry.coordinates, walk_m: Math.round(d.routes[0].distance) };
+    }
+  } catch (e) { /* offline or router down — straight legs still work */ }
+  finally { clearTimeout(timer); }
+  return null;
+}
+
+// Assemble an ephemeral tour from features matching interests (+ optional era).
+// Without opts.start: the classic armchair chain from the northernmost match.
+// With opts.start [lng,lat]: a WALKING tour — stops within reach, legs capped,
+// total capped by budget, no leg swimming across the harbour, 2-opt untangled,
+// a dash of randomness so no two rolls match, and a real foot path when the
+// router answers.
+async function buildDynamicTour(theme, era, opts = {}) {
+  const { start = null, maxLegM = 450, budgetM = 2500, maxStops = 10, radiusM = 1500 } = opts;
+  const wanted = opts.themes && opts.themes.length ? opts.themes : (theme ? [theme] : null);
   const matches = [];
   for (const key in featureIndex) {
     const f = featureIndex[key];
     if (!f.geometry || f.geometry.type !== "Point") continue;
+    if (absorbedIds.has(key.split(":")[1])) continue; // told inside a landmark's chapters
     const p = f.properties;
     const themes = Array.isArray(p.theme) ? p.theme : p.theme ? [p.theme] : [];
-    if (theme && !themes.includes(theme)) continue;
+    if (wanted && !wanted.some((w) => themes.includes(w))) continue;
     if (era && p.era !== era) continue;
     matches.push(key);
   }
-  if (matches.length < 2) return null;
-  // start at the northernmost, then greedily hop to the nearest unvisited
-  let start = matches[0];
-  for (const k of matches)
-    if (featureIndex[k].geometry.coordinates[1] > featureIndex[start].geometry.coordinates[1]) start = k;
-  const ordered = [start];
-  const remaining = new Set(matches);
-  remaining.delete(start);
-  while (remaining.size && ordered.length < 10) {
-    const last = featureIndex[ordered[ordered.length - 1]].geometry.coordinates;
-    let best = null, bestd = Infinity;
-    for (const k of remaining) {
-      const d = metersBetween(last, featureIndex[k].geometry.coordinates);
-      if (d < bestd) { bestd = d; best = k; }
+  const coord = (k) => featureIndex[k].geometry.coordinates;
+  let ordered;
+
+  if (!start) {
+    if (matches.length < 2) return null;
+    // armchair: northernmost start, nearest-to-nearest chain
+    let first = matches[0];
+    for (const k of matches) if (coord(k)[1] > coord(first)[1]) first = k;
+    ordered = [first];
+    const remaining = new Set(matches);
+    remaining.delete(first);
+    while (remaining.size && ordered.length < maxStops) {
+      const last = coord(ordered[ordered.length - 1]);
+      let best = null, bestd = Infinity;
+      for (const k of remaining) {
+        const d = metersBetween(last, coord(k));
+        if (d < bestd) { bestd = d; best = k; }
+      }
+      ordered.push(best);
+      remaining.delete(best);
     }
-    ordered.push(best);
-    remaining.delete(best);
+  } else {
+    await ensureWater();
+    const near = matches.filter((k) => metersBetween(start, coord(k)) <= radiusM);
+    // prefer significant places when there's plenty of choice
+    near.sort((a, b) => (featureIndex[a].properties.rank || 3) - (featureIndex[b].properties.rank || 3));
+    ordered = [];
+    const remaining = new Set(near);
+    let cur = start, total = 0;
+    while (remaining.size && ordered.length < maxStops) {
+      // all legal next hops, nearest first
+      const cands = [];
+      for (const k of remaining) {
+        const d = metersBetween(cur, coord(k));
+        if (d <= maxLegM && !legCrossesWater(cur, coord(k))) cands.push([k, d]);
+      }
+      cands.sort((a, b) => a[1] - b[1]);
+      if (!cands.length) break;
+      // mostly take the nearest, sometimes the second or third: variety
+      const roll = Math.random();
+      const pick = cands[roll < 0.6 || cands.length === 1 ? 0 : roll < 0.88 || cands.length === 2 ? 1 : 2];
+      if (total + pick[1] > budgetM) break;
+      ordered.push(pick[0]);
+      total += pick[1];
+      cur = coord(pick[0]);
+      remaining.delete(pick[0]);
+    }
+    if (ordered.length < 3) return null;
+    // 2-opt untangle (start stays the origin); keep a swap only if every new
+    // leg still obeys the cap and stays dry
+    const legLen = (arr) => arr.reduce((s, k, i) => s + metersBetween(i ? coord(arr[i - 1]) : start, coord(k)), 0);
+    const valid = (arr) => arr.every((k, i) => {
+      const from = i ? coord(arr[i - 1]) : start;
+      return metersBetween(from, coord(k)) <= maxLegM && !legCrossesWater(from, coord(k));
+    });
+    let improved = true;
+    while (improved) {
+      improved = false;
+      for (let i = 0; i < ordered.length - 1; i++) {
+        for (let j = i + 1; j < ordered.length; j++) {
+          const cand = ordered.slice(0, i).concat(ordered.slice(i, j + 1).reverse(), ordered.slice(j + 1));
+          if (legLen(cand) + 1 < legLen(ordered) && valid(cand)) { ordered = cand; improved = true; }
+        }
+      }
+    }
   }
+
   const stops = ordered.map((key) => ({ ref: key, note: featureIndex[key].properties.summary || "" }));
   const eraLabel = era ? era.replace(" Sydney", "") : "";
+  const what = wanted && wanted.length === 1 ? wanted[0].toLowerCase() + " places" : "places";
+  if (start) {
+    const routed = await fetchWalkPath([start, ...ordered.map(coord)]);
+    const meters = routed ? routed.walk_m
+      : ordered.reduce((s, k, i) => s + metersBetween(i ? coord(ordered[i - 1]) : start, coord(k)), 0);
+    const title = wanted && wanted.length === 1 ? wanted[0]
+      : wanted && wanted.length ? "Your interests, nearby" : "Around you";
+    return {
+      id: "dynamic",
+      title: title + (eraLabel ? " · " + eraLabel : ""),
+      blurb: `A walking route from where you are through ${stops.length} ${what}, about ${(meters / 1000).toFixed(1)} km on foot.`,
+      kind: "walk",
+      stops,
+      ...(routed ? { path: [start, ...routed.path], walk_m: routed.walk_m } : {}),
+    };
+  }
   return {
     id: "dynamic",
     title: theme + (eraLabel ? " · " + eraLabel : ""),
-    blurb: `A generated route through ${stops.length} ${theme.toLowerCase()} places${eraLabel ? " of " + eraLabel.toLowerCase() + " Sydney" : ""}, linked nearest-to-nearest.`,
+    blurb: `A generated route through ${stops.length} ${what}${eraLabel ? " of " + eraLabel.toLowerCase() + " Sydney" : ""}, linked nearest-to-nearest.`,
     kind: "theme",
     stops,
   };
@@ -1633,10 +1996,10 @@ function buildTourBuilder() {
     </div>`;
   const form = wrap.querySelector(".tb-form");
   wrap.querySelector(".tb-toggle").addEventListener("click", () => { form.hidden = !form.hidden; });
-  wrap.querySelector(".tb-go").addEventListener("click", () => {
+  wrap.querySelector(".tb-go").addEventListener("click", async () => {
     const theme = wrap.querySelector(".tb-theme").value;
     const era = wrap.querySelector(".tb-era").value;
-    const tour = buildDynamicTour(theme, era);
+    const tour = await buildDynamicTour(theme, era);
     const msg = wrap.querySelector(".tb-msg");
     if (!tour) { msg.textContent = "Not enough places match — try a broader theme or any era."; return; }
     msg.textContent = "";
@@ -1653,8 +2016,8 @@ async function loadTours() {
     if (missing.length) console.warn(`Tour ${t.id} skipped — missing refs:`, missing.map((s) => s.ref));
     return !missing.length;
   });
-  // order: chronologies, then themes, then walks
-  const order = { time: 0, theme: 1, walk: 2 };
+  // order: real walks first (the primary use), then the virtual shelves
+  const order = { walk: 0, time: 1, theme: 2 };
   valid.sort((a, b) => (order[a.kind] ?? 1) - (order[b.kind] ?? 1));
   const kindsPresent = new Set(valid.map((t) => t.kind || "theme"));
   list.parentNode.insertBefore(buildTourBuilder(), list);
@@ -1765,8 +2128,8 @@ async function loadStreets() {
     layout: { "line-cap": "round", "line-join": "round" },
     paint: {
       "line-color": periodColorExpression,
-      "line-width": ["interpolate", ["linear"], ["zoom"], 10, 2, 13, 3.5, 16, 6],
-      "line-opacity": 0.85,
+      "line-width": ["interpolate", ["linear"], ["zoom"], 10, 1.2, 13, 3.5, 16, 6],
+      "line-opacity": ["interpolate", ["linear"], ["zoom"], 10, 0.35, 13, 0.75, 15, 0.85],
     },
   }, map.getLayer("story-points") ? "story-points" : undefined);
   map.on("mouseenter", "street-lines", (e) => {
@@ -1810,10 +2173,12 @@ async function loadStories() {
     type: "circle",
     source: "stories",
     paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 3.5, 13, 5.5, 16, 8],
+      "circle-radius": rankRamp([4.2, 2.2, 1.3], [5.5, 4, 2.7], 7.5),
       "circle-color": periodColorExpression,
-      "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 10, 1, 13, 1.5, 16, 2],
+      "circle-opacity": rankRamp([1, 0.75, 0.55], [1, 1, 0.85], 1),
+      "circle-stroke-width": rankRamp([1.2, 0.6, 0.3], [1.4, 1.1, 0.8], 2),
       "circle-stroke-color": "#f7f3ec",
+      "circle-stroke-opacity": rankRamp([1, 0.7, 0.45], [1, 1, 0.8], 1),
     },
   });
 
@@ -1882,10 +2247,12 @@ async function loadBuildings() {
     type: "circle",
     source: "buildings",
     paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 3.5, 13, 5, 16, 7],
+      "circle-radius": rankRamp([3.8, 2, 1.2], [5, 3.6, 2.5], 6.5),
       "circle-color": "#f7f3ec",
-      "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 10, 1.5, 13, 2.25, 16, 3],
+      "circle-opacity": rankRamp([1, 0.7, 0.5], [1, 1, 0.8], 1),
+      "circle-stroke-width": rankRamp([1.6, 0.9, 0.5], [2, 1.6, 1.1], 3),
       "circle-stroke-color": periodColorExpression,
+      "circle-stroke-opacity": rankRamp([1, 0.75, 0.55], [1, 1, 0.85], 1),
     },
   });
 
@@ -1978,10 +2345,12 @@ async function loadPeople() {
     type: "circle",
     source: "people",
     paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 2.75, 13, 4, 16, 5.5],
+      "circle-radius": rankRamp([3.2, 1.7, 1], [4.2, 3, 2.2], 5.2),
       "circle-color": "#2b2118",
-      "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 10, 1.25, 13, 1.9, 16, 2.5],
+      "circle-opacity": rankRamp([1, 0.7, 0.5], [1, 1, 0.8], 1),
+      "circle-stroke-width": rankRamp([1.3, 0.7, 0.4], [1.6, 1.3, 0.9], 2.5),
       "circle-stroke-color": periodColorExpression,
+      "circle-stroke-opacity": rankRamp([1, 0.75, 0.55], [1, 1, 0.85], 1),
     },
   });
 

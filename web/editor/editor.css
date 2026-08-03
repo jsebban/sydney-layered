@@ -80,6 +80,13 @@ body {
 .chapter { border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-bottom: 12px; background: #fbf9f4; }
 .chapter .chead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .chapter .reftag { font-size: 12px; color: var(--accent2); font-weight: 600; }
+/* Library chapters/beats are collapsible so a 6-chapter dossier stays scannable */
+details.chapter > summary { cursor: pointer; font-weight: 600; font-size: 13px; color: var(--accent2); user-select: none; }
+details.chapter[open] > summary { margin-bottom: 4px; }
+details.beat { background: #f3efe6; margin: 8px 0; }
+details.beat > summary { color: #6b5d4d; }
+.av { display: flex; flex-direction: column; gap: 4px; }
+.av input { width: 100%; }
 .imgrow { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 6px; align-items: start; margin-bottom: 8px; }
 .imgfields { display: flex; flex-direction: column; gap: 4px; border-left: 2px solid var(--line); padding-left: 8px; }
 .imgnum { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
