@@ -1542,10 +1542,29 @@ body.reading #attrib-btn { display: none !important; }
   color: #fff; font-family: inherit; font-size: 0.9rem; font-weight: 700;
   padding: 0.55rem 1rem; cursor: pointer; white-space: nowrap;
 }
+#ts-intro .tsi-preview {
+  flex: none; border: 1px solid rgba(255,255,255,0.35); border-radius: 999px;
+  background: transparent; color: #fff; font-family: inherit; font-size: 0.88rem;
+  padding: 0.5rem 0.85rem; cursor: pointer; white-space: nowrap;
+}
+#ts-intro .tsi-preview:hover { background: rgba(255,255,255,0.12); }
 #ts-intro .tsi-x {
   flex: none; border: none; background: rgba(255,255,255,0.12); color: #fff;
   width: 1.9rem; height: 1.9rem; border-radius: 50%; font-size: 0.9rem; cursor: pointer;
 }
+
+/* Preview controls (speed toggle + Skip) shown while the fly-through plays */
+#preview-ctrl {
+  position: fixed; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%);
+  z-index: 60; display: flex; gap: 0.5rem;
+}
+#preview-ctrl button {
+  border: none; border-radius: 999px; background: rgba(31,27,22,0.9); color: #fff;
+  font-family: inherit; font-size: 0.85rem; font-weight: 600; padding: 0.6rem 1.1rem; cursor: pointer;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.4); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+#preview-ctrl button:hover { background: rgba(31,27,22,1); }
+#preview-speed { min-width: 5.4rem; }
 
 /* the "peeking at the map" pill */
 #ts-pill {
@@ -1638,3 +1657,185 @@ body.reading #attrib-btn { display: none !important; }
   .beat-in .beat-h, .beat-in .beat-p { animation: none !important; }
   .rch-track { transition: none; }
 }
+
+/* ============================================================================
+   TOUR LAUNCHER — tour-first landing screen (see buildLauncher in app.js)
+   ============================================================================ */
+#launcher[hidden] { display: none; }
+#launcher {
+  position: fixed; inset: 0; z-index: 260;
+  display: flex; flex-direction: column;
+  background: radial-gradient(120% 80% at 50% -10%, #3a2c1c 0%, #1c1712 55%, #14100c 100%);
+  color: #f7f3ec;
+  opacity: 0; transition: opacity 320ms ease;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+#launcher.show { opacity: 1; }
+
+.lnr-head { flex: none; padding: 1.6rem 1.4rem 0.4rem; }
+.lnr-title h1 { margin: 0; font-size: 1.95rem; letter-spacing: 0.02em; }
+.lnr-tag { margin: 0.35rem 0 1.1rem; font-style: italic; font-size: 0.95rem; color: #c9bda7; max-width: 42rem; line-height: 1.4; }
+
+.lnr-tabs { display: inline-flex; gap: 0.2rem; background: rgba(255,255,255,0.07); border-radius: 999px; padding: 0.25rem; }
+.lnr-tab { border: none; background: none; color: #c9bda7; font: inherit; font-size: 0.85rem; padding: 0.42rem 0.95rem; border-radius: 999px; cursor: pointer; transition: background 140ms, color 140ms; }
+.lnr-tab.active { background: var(--paper); color: var(--ink); font-weight: 700; }
+
+.lnr-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding: 0.6rem 1.4rem 6.5rem; }
+.lnr-group { margin-top: 1.7rem; }
+.lnr-group:first-child { margin-top: 0.8rem; }
+.lnr-gh { display: flex; align-items: baseline; gap: 0.55rem; margin: 0 0 0.85rem; font-size: 0.78rem; font-weight: 400; text-transform: uppercase; letter-spacing: 0.14em; color: #c9bda7; }
+.lnr-gsub { text-transform: none; letter-spacing: 0; font-style: italic; font-size: 0.76rem; opacity: 0.75; }
+.lnr-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 0.95rem; }
+
+.lcard {
+  display: flex; flex-direction: column; text-align: left; font: inherit;
+  background: var(--paper); color: var(--ink);
+  border: none; border-radius: 14px; overflow: hidden; cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+.lcard:hover { transform: translateY(-2px); box-shadow: 0 9px 28px rgba(0,0,0,0.48); }
+.lcard:active { transform: translateY(0); }
+
+.lc-thumb { position: relative; height: 118px; background-size: cover; background-position: center; background-color: #ded4c2; }
+.lc-thumb.noimg { background: linear-gradient(135deg, #b9a98f, #7d6244); }
+.lc-badge { position: absolute; top: 0.5rem; left: 0.5rem; background: var(--accent); color: #fff; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 5px; }
+.lcard:not(.walk) .lc-badge { background: rgba(43,33,24,0.82); }
+.lc-thumb .tc-route { position: absolute; top: auto; left: auto; right: 0.4rem; bottom: 0.35rem; width: 46px; height: 46px; opacity: 0.95; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5)); }
+.lc-thumb .tc-route path { stroke: #fff; }
+.lc-thumb .tc-route circle { fill: #fff; }
+
+.lc-body { padding: 0.7rem 0.85rem 0.9rem; display: flex; flex-direction: column; gap: 0.28rem; }
+.lc-title { font-size: 1.06rem; line-height: 1.2; }
+.lc-teaser { font-size: 0.82rem; color: #5c4f3d; line-height: 1.38; }
+.lc-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.4rem; margin-top: 0.35rem; font-size: 0.72rem; }
+.lc-fact { color: #6b5d4d; }
+.lc-fact + .lc-fact::before { content: "·"; margin-right: 0.4rem; color: #c0b299; }
+.lc-diff, .lc-chip.virtual { padding: 0.13rem 0.5rem; border-radius: 999px; font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+.lc-diff.easy { background: #e2efe0; color: #2f6d3b; }
+.lc-diff.moderate { background: #f6ecd3; color: #8a5a1a; }
+.lc-diff.hard { background: #f3dcd1; color: #a83a1a; }
+.lc-chip.virtual { background: #e7ded0; color: #6b5d4d; }
+.lc-feat { background: #efe7d8; color: #6b5d4d; padding: 0.12rem 0.42rem; border-radius: 5px; font-size: 0.68rem; }
+
+.lnr-explore {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  bottom: calc(1.1rem + env(safe-area-inset-bottom, 0px));
+  background: rgba(20,16,12,0.82); color: #f7f3ec;
+  border: 1px solid rgba(255,255,255,0.28); border-radius: 999px;
+  font: inherit; font-size: 0.9rem; padding: 0.62rem 1.35rem; cursor: pointer;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.42);
+}
+.lnr-explore:hover { background: rgba(20,16,12,0.94); }
+
+/* ◆ Tours home button — the way back to the launcher from free-browse. */
+#home-btn {
+  position: fixed; z-index: 46;
+  top: calc(0.55rem + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+  background: rgba(20,16,12,0.8); color: #f7f3ec;
+  border: 1px solid rgba(255,255,255,0.22); border-radius: 999px;
+  font-family: inherit; font-size: 0.82rem; padding: 0.4rem 0.85rem; cursor: pointer;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  box-shadow: 0 3px 12px rgba(0,0,0,0.35);
+}
+#home-btn:hover { background: rgba(20,16,12,0.92); }
+/* Hidden while browsing tours, mid-walk, or reading a deep dive. */
+body.launcher-open #home-btn,
+body.in-tour #home-btn,
+body.reading #home-btn { display: none; }
+body.launcher-open #sidebar-toggle,
+body.launcher-open #nearme-btn,
+body.launcher-open #attrib-btn { display: none; }
+
+@media (max-width: 720px) {
+  .lnr-head { padding: 1.2rem 1.05rem 0.4rem; }
+  .lnr-title h1 { font-size: 1.6rem; }
+  .lnr-tag { font-size: 0.88rem; }
+  .lnr-body { padding: 0.6rem 1.05rem 6.5rem; }
+  .lnr-cards { grid-template-columns: 1fr; gap: 0.8rem; }
+  .lc-thumb { height: 104px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #launcher { transition: none; }
+  .lcard { transition: none; }
+}
+
+/* ============================================================================
+   THE "IN-BETWEEN": next-leg preview bar + between-stops walk card
+   ============================================================================ */
+/* A tappable bar at the foot of each walking-tour stop card: the next leg's
+   name + distance/time, always visible so walkers can plan or bail. */
+.ts-nextbar {
+  display: flex; align-items: center; gap: 0.6rem; width: 100%;
+  border: none; border-top: 1px solid #e2d8c6; background: #f1e9db;
+  font: inherit; text-align: left; cursor: pointer; color: var(--ink);
+  padding: 0.6rem 1.2rem;
+}
+.ts-nextbar:hover { background: #ece2d0; }
+.tnb-lead { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.1em; color: #8a7a63; }
+.tnb-name { font-weight: 700; font-size: 0.92rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tnb-meta { font-size: 0.78rem; color: #6b5d4d; white-space: nowrap; }
+.tnb-go { font-size: 0.8rem; font-weight: 700; color: var(--accent); white-space: nowrap; }
+
+/* The walk card — a bottom sheet over the map, so the route stays in view. */
+#walkcard[hidden] { display: none; }
+#walkcard {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 285;
+  max-height: 52vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  background: var(--paper); color: var(--ink);
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -6px 28px rgba(0,0,0,0.35);
+  padding: 0.5rem 1.2rem calc(1rem + env(safe-area-inset-bottom, 0px));
+  transform: translateY(101%);
+  transition: transform 0.5s cubic-bezier(0.3, 0.75, 0.3, 1);
+}
+#walkcard.show { transform: translateY(0); }
+.wc-grip { width: 38px; height: 4px; border-radius: 2px; background: #d3c8b5; margin: 0.15rem auto 0.55rem; }
+.wc-top { display: flex; align-items: center; justify-content: space-between; }
+.wc-count { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: #8a7a63; }
+.wc-top .reader-close { position: static; width: 1.9rem; height: 1.9rem; background: #e7ded0; color: var(--ink); font-size: 1.1rem; }
+.wc-lead { display: flex; align-items: baseline; gap: 0.55rem; margin: 0.35rem 0 0.5rem; }
+.wc-arrow { color: var(--accent); font-size: 1.3rem; font-weight: 700; line-height: 1; }
+.wc-to strong { font-size: 1.22rem; }
+.wc-to .wc-meta { display: block; font-size: 0.82rem; color: #6b5d4d; margin-top: 0.1rem; }
+.wc-dir { font-size: 0.9rem; line-height: 1.45; color: #4a3d2e; margin: 0.3rem 0 0.4rem; padding-left: 0.85rem; border-left: 3px solid var(--accent); }
+.wc-narr { font-size: 1.02rem; line-height: 1.6; color: #332a1e; margin: 0.3rem 0 0.9rem; }
+.wc-narr.subtle { color: #6b5d4d; font-style: italic; }
+.wc-nav { display: flex; gap: 0.6rem; align-items: center; }
+.wc-back { flex: none; border: none; background: none; font: inherit; font-size: 0.88rem; color: var(--accent); font-weight: 700; cursor: pointer; padding: 0.5rem 0; }
+.wc-go { flex: 1; border: none; background: var(--accent); color: #fff; font: inherit; font-weight: 700; font-size: 0.95rem; padding: 0.7rem 1rem; border-radius: 999px; cursor: pointer; }
+.wc-go:hover { background: #85401b; }
+
+@media (prefers-reduced-motion: reduce) { #walkcard { transition: none; } }
+
+/* ============================================================================
+   Sidebar belongs to FREE-MAP mode only
+   ============================================================================ */
+/* Tours are chosen in the launcher now — the sidebar's Tours section is redundant. */
+#tours-control { display: none; }
+/* Hidden behind the picker and while locked into a tour (intro, preview, walking). */
+body.launcher-open #sidebar,
+body.in-tour #sidebar,
+body.in-tour #sidebar-toggle { display: none; }
+
+/* Preview stop card (the brief pause at each stop): photo + name + one-liner */
+.pv-popup .maplibregl-popup-content {
+  padding: 0; background: #1f1b16; color: #f7f3ec; border-radius: 13px; overflow: hidden;
+  box-shadow: 0 8px 26px rgba(0,0,0,0.5); font-family: Georgia, serif;
+}
+.pv-popup .maplibregl-popup-tip { border-top-color: #1f1b16; border-bottom-color: #1f1b16; }
+.pvc { width: 240px; }
+.pvc-img { width: 100%; height: 118px; background-size: cover; background-position: center; background-color: #2f2820; }
+.pvc-body { display: flex; flex-direction: column; gap: 0.18rem; padding: 0.55rem 0.75rem 0.7rem; }
+.pvc-num { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.11em; color: #c9bda7; }
+.pvc-name { font-size: 1.04rem; line-height: 1.22; }
+.pvc-line { font-size: 0.83rem; line-height: 1.42; color: #d8ccb8; margin-top: 0.1rem; }
+
+/* Per-tour stop chapters + newspaper sources inside the tour stop card */
+.ts-chap { margin: 0 0 0.4rem; }
+.ts-chap-h { margin: 1rem 1.2rem 0.3rem; font-size: 1.15rem; color: #2b2118; }
+.ts-audio { display: block; width: calc(100% - 2.4rem); margin: 0.5rem 1.2rem; }
+.ts-papers { margin: 0.8rem 1.2rem 0.4rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.ts-papers-h { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: #8a7a63; }
+.ts-papers a { color: var(--accent); text-decoration: none; border-bottom: 1px solid #d8cfc0; width: fit-content; }

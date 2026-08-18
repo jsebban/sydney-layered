@@ -678,6 +678,8 @@ function rankRamp(z10, z13, z16) {
   const m = (v) => (Array.isArray(v) ? ["match", ["get", "rank"], 1, v[0], 2, v[1], v[2]] : v);
   return ["interpolate", ["linear"], ["zoom"], 10, m(z10), 13, m(z13), 16, m(z16)];
 }
+// Every pin the same size — a gentle zoom scale, identical across rank and type.
+const PIN_RADIUS = ["interpolate", ["linear"], ["zoom"], 10, 4, 13, 5.5, 16, 7];
 function combinedFilter() {
   const parts = [];
   if (activePeriod !== "now") parts.push(["in", activePeriod, ["get", "periods"]]);
@@ -1204,7 +1206,16 @@ function setTourPlaying(on) {
 function exitTour() {
   clearTourTimer();
   tourPlaying = false;
+  // Cancel any running preview fly-through and its Skip affordance.
+  previewOn = false;
+  previewToken++;
+  if (previewTimer) { clearTimeout(previewTimer); previewTimer = null; }
+  if (previewDrawTimer) { clearInterval(previewDrawTimer); previewDrawTimer = null; }
+  hideStopLabel();
+  const skip = document.getElementById("preview-skip");
+  if (skip) skip.remove();
   activeTour = null;
+  document.body.classList.remove("in-tour");
   clearTimeout(showTourStop._t);
   const el = tourStopEl();
   if (el) {
@@ -1216,7 +1227,10 @@ function exitTour() {
   const intro = document.getElementById("ts-intro");
   if (intro) intro.remove();
   map.getSource("tour-route").setData(EMPTY_FC);
+  map.getSource("tour-route-done").setData(EMPTY_FC);
   map.getSource("tour-stops").setData(EMPTY_FC);
+  closeWalkCard();
+  stopBeacon();
   map.easeTo({ pitch: 0, bearing: 0, duration: 600 });
   if (yearBeforeTour && yearBeforeTour !== activeYear) setYear(yearBeforeTour);
   yearBeforeTour = null;
@@ -1226,6 +1240,7 @@ function exitTour() {
   }
   document.querySelectorAll("#tour-list li").forEach((li) => li.classList.remove("active"));
   closeStory();
+  showLauncher(); // tour-first: leaving a tour returns to the picker, not the free map
 }
 
 const tourStopEl = () => document.getElementById("tourstop");
@@ -1256,18 +1271,51 @@ function setTourOverlay(open) {
 
 // One stop's content as a full-screen "beat" (same layout language as the
 // chapter reader: media pane + words pane, split on wide screens).
+// Per-tour stop chapters (override the pin's own content for this tour).
+function stopChaptersHtml(stop) {
+  return (stop.chapters || []).map((c) => {
+    const img = c.image ? `<div class="story-img"><img src="${asset(c.image)}" alt="" loading="lazy"></div>` : "";
+    const audio = c.audio ? `<audio class="ts-audio" controls preload="none" src="${asset(c.audio)}"></audio>` : "";
+    const paras = asArray(c.body).map((x) => `<p class="beat-p">${inlineMd(x)}</p>`).join("");
+    return `<section class="ts-chap">${c.heading ? `<h3 class="ts-chap-h">${inlineMd(c.heading)}</h3>` : ""}${img}${audio}${paras}</section>`;
+  }).join("");
+}
+function stopPapersHtml(stop) {
+  if (!Array.isArray(stop.papers) || !stop.papers.length) return "";
+  return `<div class="ts-papers"><span class="ts-papers-h">From the papers</span>${stop.papers
+    .filter((p) => p && p.url)
+    .map((p) => `<a href="${p.url}" target="_blank" rel="noopener">${p.label || p.url}</a>`).join("")}</div>`;
+}
+
 function tourStopContent(stop, feature) {
   const p = feature.properties;
-  const timeline = typeof p.timeline === "string" ? JSON.parse(p.timeline) : (p.timeline || []);
-  const stories = typeof p.stories === "string" ? JSON.parse(p.stories) : (p.stories || []);
-  const media = mediaList(p).slice();
-  if (stop.image) media.unshift({ url: stop.image, caption: stop.caption || "", link: "" });
-  const paras = asArray(p.body).concat(Array.isArray(stories) ? stories : []);
   const branches = Array.isArray(stop.branches) && stop.branches.length
     ? `<div class="tour-branches"><span class="tour-branch-label">Choose a path</span>${stop.branches
         .map((b, bi) => `<button class="tbranch" data-bi="${bi}">${b.label} ›</button>`)
         .join("")}</div>`
     : "";
+
+  // This tour gives the stop its own chapters → render those (the pin can read
+  // differently in another tour). Otherwise fall back to the pin's content.
+  if (Array.isArray(stop.chapters) && stop.chapters.length) {
+    return `<div class="beat beat-in beat-textonly">
+      <div class="beat-words">
+        ${stop.note ? `<p class="ts-note">${inlineMd(stop.note)}</p>` : ""}
+        <h2 class="beat-h">${p.title || p.name}</h2>
+        ${stopChaptersHtml(stop)}
+        ${stopPapersHtml(stop)}
+        ${stop.quote ? `<blockquote class="tour-quote">${inlineMd(stop.quote)}</blockquote>` : ""}
+        ${branches}
+      </div>
+      <div class="beat-film"></div>
+    </div>`;
+  }
+
+  const timeline = typeof p.timeline === "string" ? JSON.parse(p.timeline) : (p.timeline || []);
+  const stories = typeof p.stories === "string" ? JSON.parse(p.stories) : (p.stories || []);
+  const media = mediaList(p).slice();
+  if (stop.image) media.unshift({ url: stop.image, caption: stop.caption || "", link: "" });
+  const paras = asArray(p.body).concat(Array.isArray(stories) ? stories : []);
   return `<div class="beat beat-in${media.length ? "" : " beat-textonly"}">
     <div class="beat-lead">${mediaHtml(media)}</div>
     <div class="beat-words">
@@ -1276,6 +1324,7 @@ function tourStopContent(stop, feature) {
       ${paras.map((x) => `<p class="beat-p">${inlineMd(x)}</p>`).join("")}
       ${timeline.length ? `<ul class="timeline ts-timeline">${timeline.map((t) => `<li><span class="tl-year">${t.year}</span><span>${t.event}</span></li>`).join("")}</ul>` : ""}
       ${stop.quote ? `<blockquote class="tour-quote">${inlineMd(stop.quote)}</blockquote>` : ""}
+      ${stopPapersHtml(stop)}
       ${branches}
     </div>
     <div class="beat-film"></div>
@@ -1286,9 +1335,12 @@ function showTourStop(i) {
   const intro = document.getElementById("ts-intro");
   if (intro) intro.remove();
   tourIndex = i;
+  closeWalkCard();       // arriving at a stop dismisses any between-stops walk card
+  paintTourProgress(i);  // fill the walked route, advance the beacon, restate badges
   const stop = activeTour.stops[i];
   const feature = featureIndex[stop.ref];
   const last = i === activeTour.stops.length - 1;
+  const leg = activeTour.kind === "walk" ? legInfo(i) : null; // the walk to the NEXT stop
   const el = tourStopEl();
 
   // Fly first: the overlay drops while the camera travels, so every page turn
@@ -1313,16 +1365,26 @@ function showTourStop(i) {
         <button class="reader-close texit" aria-label="End tour">×</button>
       </div>
       <div class="ts-scroll">${tourStopContent(stop, feature)}</div>
+      ${leg ? `<button class="ts-nextbar" type="button">
+        <span class="tnb-lead">Next</span>
+        <span class="tnb-name">${featNameOf(activeTour.stops[i + 1])}</span>
+        <span class="tnb-meta">${fmtMeters(leg.dist)} · ~${leg.mins} min</span>
+        <span class="tnb-go">Walk ›</span></button>` : ""}
       <div class="rch-nav">
         <button class="rb-prev tprev" ${i === 0 ? "disabled" : ""}>‹ Back</button>
         <button class="ts-play tplay" title="${tourPlaying ? "Pause" : "Auto-play"}">${tourPlaying ? "❚❚" : "▶"}</button>
         <div class="rb-dots">${activeTour.stops.map((_, k) => `<span class="rb-dot ${k === i ? "on" : ""}"></span>`).join("")}</div>
-        <button class="rb-next tnext">${last ? "Finish" : "Next ›"}</button>
+        <button class="rb-next tnext">${last ? "Finish" : leg ? "Walk on ›" : "Next ›"}</button>
       </div>`;
     wireCarousels(el);
     el.classList.toggle("playing", tourPlaying);
     el.querySelector(".tprev").addEventListener("click", () => { clearTourTimer(); showTourStop(i - 1); });
-    el.querySelector(".tnext").addEventListener("click", () => { clearTourTimer(); last ? exitTour() : showTourStop(i + 1); });
+    // On foot: advancing opens the between-stops walk card first (directions +
+    // ambient narration); armchair tours jump straight to the next stop.
+    const advance = () => { clearTourTimer(); if (last) return exitTour(); leg ? showWalkLeg(i) : showTourStop(i + 1); };
+    el.querySelector(".tnext").addEventListener("click", advance);
+    const nb = el.querySelector(".ts-nextbar");
+    if (nb) nb.addEventListener("click", advance);
     el.querySelector(".tplay").addEventListener("click", () => setTourPlaying(!tourPlaying));
     el.querySelector(".texit").addEventListener("click", exitTour);
     el.querySelector(".ts-peek").addEventListener("click", () => setTourOverlay(false));
@@ -1341,6 +1403,335 @@ function showTourStop(i) {
   if (tourPlaying) scheduleAdvance();
 }
 
+// --- Progressive route + stop-state beacon ---------------------------------
+const lineFC = (coords) => ({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: coords } });
+
+// Build the tour's route and the vertex index each stop sits at, so the line
+// can be cut into "walked" and "still ahead" as the tour advances. Prefer the
+// explicit TRACKS (per-leg geometry); fall back to a legacy `path`, then to
+// straight hops between stops.
+function routeProgressSetup(tour) {
+  const stopCoords = tour.stops.map((s) => featureIndex[s.ref].geometry.coordinates);
+  if (Array.isArray(tour.tracks) && tour.tracks.length) {
+    // Stitch the per-leg tracks into one route; each stop sits at a track boundary.
+    const route = [], split = [];
+    tour.tracks.forEach((tr, i) => {
+      const c = tr.coordinates || [];
+      if (i === 0) { route.push(...c); split.push(0); }        // stop 0 at index 0
+      else { for (let v = 1; v < c.length; v++) route.push(c[v]); }
+      split.push(route.length - 1);                            // stop i+1
+    });
+    tour._route = route;
+    tour._splitIdx = split;
+    return;
+  }
+  const usesPath = Array.isArray(tour.path) && tour.path.length >= 2;
+  const route = usesPath ? tour.path : stopCoords;
+  tour._route = route;
+  tour._splitIdx = stopCoords.map((c, i) => {
+    if (!usesPath) return i; // hop route: stop i IS vertex i
+    let best = 0, bd = Infinity;
+    for (let v = 0; v < route.length; v++) {
+      const d = metersBetween(c, route[v]);
+      if (d < bd) { bd = d; best = v; }
+    }
+    return best;
+  });
+}
+
+// Paint the walked portion solid, the rest faint; recolour the badges by state;
+// float the beacon over the next stop. i = current stop index (-1 at the intro).
+function paintTourProgress(i) {
+  if (!activeTour || !activeTour._route) return;
+  const route = activeTour._route, split = activeTour._splitIdx;
+  const cut = i < 0 ? 0 : Math.min(route.length - 1, split[i]);
+  const done = route.slice(0, cut + 1);
+  const ahead = route.slice(cut);
+  map.getSource("tour-route-done").setData(done.length >= 2 ? lineFC(done) : EMPTY_FC);
+  map.getSource("tour-route").setData(ahead.length >= 2 ? lineFC(ahead) : EMPTY_FC);
+  map.getSource("tour-stops").setData({
+    type: "FeatureCollection",
+    features: activeTour.stops.map((s, k) => ({
+      type: "Feature",
+      properties: {
+        label: String(k + 1),
+        state: k < i ? "done" : k === i ? "current" : k === i + 1 ? "next" : "upcoming",
+      },
+      geometry: featureIndex[s.ref].geometry,
+    })),
+  });
+  const next = activeTour.stops[i + 1];
+  if (next) { beaconCoord = featureIndex[next.ref].geometry.coordinates; startBeacon(); }
+  else stopBeacon();
+}
+
+// A gentle expanding-ring pulse on the next stop (map has no native pulse).
+let beaconCoord = null, beaconRAF = null;
+function startBeacon() {
+  if (beaconRAF || !map.getSource("tour-beacon")) return;
+  const tick = () => {
+    if (!activeTour || !beaconCoord) { stopBeacon(); return; }
+    const t = (Date.now() % 1600) / 1600;            // 0 → 1 each 1.6 s
+    map.setPaintProperty("tour-beacon", "circle-radius", 10 + t * 24);
+    map.setPaintProperty("tour-beacon", "circle-opacity", 0.45 * (1 - t));
+    map.getSource("tour-beacon").setData({ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: beaconCoord } });
+    beaconRAF = requestAnimationFrame(tick);
+  };
+  beaconRAF = requestAnimationFrame(tick);
+}
+function stopBeacon() {
+  if (beaconRAF) cancelAnimationFrame(beaconRAF);
+  beaconRAF = null; beaconCoord = null;
+  if (map.getSource("tour-beacon")) map.getSource("tour-beacon").setData(EMPTY_FC);
+}
+
+// --- The "in-between": per-leg directions, distance/time and walk narration ---
+const fmtMeters = (m) => (m < 950 ? Math.round(m / 10) * 10 + " m" : (m / 1000).toFixed(1) + " km");
+function featNameOf(stop) {
+  const f = stop && featureIndex[stop.ref];
+  return f ? (f.properties.name || f.properties.title || f.properties.id) : "";
+}
+
+// The walk from stop `from` to `from`+1: the slice of the route between them,
+// its real on-path distance, and a 4.5 km/h time. Returns null when there's no
+// next stop or the tour has no drawn path to follow.
+function legInfo(from) {
+  if (!activeTour || !activeTour._route) return null;
+  const to = from + 1;
+  if (to >= activeTour.stops.length) return null;
+  const route = activeTour._route, split = activeTour._splitIdx;
+  const a = Math.min(split[from], split[to]), b = Math.max(split[from], split[to]);
+  const seg = route.slice(a, b + 1);
+  if (seg.length < 2) return null;
+  let d = 0;
+  for (let i = 1; i < seg.length; i++) d += metersBetween(seg[i - 1], seg[i]);
+  return { from, to, seg, dist: d, mins: Math.max(1, Math.round(d / 4500 * 60)) };
+}
+
+const walkCardEl = () => document.getElementById("walkcard");
+
+// Show the between-stops walk card: highlight this leg on the map, beacon the
+// next stop, frame the leg, and read out the ambient narration for the walk.
+function showWalkLeg(from) {
+  const info = legInfo(from);
+  if (!info) { showTourStop(from + 1); return; }
+  const nextStop = activeTour.stops[info.to];
+  const nf = featureIndex[nextStop.ref];
+  clearTourTimer();
+  // Drop the full stop overlay to reveal the map (no peek pill — the walk card is the UI).
+  const ts = tourStopEl();
+  if (ts) ts.classList.remove("show");
+  const pill = document.getElementById("ts-pill"); if (pill) pill.remove();
+  // Brightly highlight the leg to walk, and pulse the destination.
+  map.getSource("tour-leg").setData(lineFC(info.seg));
+  beaconCoord = nf.geometry.coordinates; startBeacon();
+  // Frame the whole leg, leaving room for the bottom sheet.
+  let bnds = null;
+  for (const c of info.seg) bnds = bnds ? bnds.extend(c) : new maplibregl.LngLatBounds(c, c);
+  if (bnds) map.fitBounds(bnds, { padding: { top: 70, left: 50, right: 50, bottom: Math.round(window.innerHeight * 0.45) }, maxZoom: 17, duration: 900 });
+  // The track connecting these two stops carries the directions + narration.
+  const track = (activeTour.tracks || [])[from] || null;
+  renderWalkCard(info, nextStop, nf, track);
+}
+
+function renderWalkCard(info, nextStop, nf, track) {
+  const el = walkCardEl();
+  if (!el) { showTourStop(info.to); return; }
+  const np = nf.properties;
+  const n = activeTour.stops.length;
+  const directions = track && track.directions
+    ? `<p class="wc-dir">${inlineMd(track.directions)}</p>` : "";
+  const narration = track && track.narration
+    ? `<p class="wc-narr">${inlineMd(track.narration)}</p>`
+    : `<p class="wc-narr subtle">Follow the highlighted path to the next stop.</p>`;
+  el.innerHTML = `
+    <div class="wc-grip"></div>
+    <div class="wc-top">
+      <span class="wc-count">On the way · stop ${info.to + 1} of ${n}</span>
+      <button class="wc-x reader-close" aria-label="End tour">×</button>
+    </div>
+    <div class="wc-lead">
+      <span class="wc-arrow">→</span>
+      <span class="wc-to"><strong>${np.name || np.title}</strong>
+        <span class="wc-meta">${fmtMeters(info.dist)} · about ${info.mins} min on foot</span></span>
+    </div>
+    ${directions}
+    ${narration}
+    <div class="wc-nav">
+      <button class="wc-back" type="button">‹ Back to stop ${info.from + 1}</button>
+      <button class="wc-go" type="button">I'm here — open stop ›</button>
+    </div>`;
+  el.querySelector(".wc-x").addEventListener("click", exitTour);
+  el.querySelector(".wc-back").addEventListener("click", () => showTourStop(info.from));
+  el.querySelector(".wc-go").addEventListener("click", () => showTourStop(info.to));
+  el.hidden = false;
+  void el.offsetHeight;      // reflow so the slide-up runs
+  el.classList.add("show");
+}
+
+function closeWalkCard() {
+  const el = walkCardEl();
+  if (el && !el.hidden) {
+    el.classList.remove("show");
+    setTimeout(() => { if (!el.classList.contains("show")) { el.hidden = true; el.innerHTML = ""; } }, 380);
+  }
+  if (map.getSource("tour-leg")) map.getSource("tour-leg").setData(EMPTY_FC);
+}
+
+// --- Cinematic preview: MapLibre eases the camera stop-to-stop -------------
+let previewOn = false, previewToken = 0, previewTimer = null, previewDrawTimer = null;
+let previewSpeed = 1;                  // 1× / 2× / 3× — set live via the preview control
+
+function bearingBetween(a, b) {
+  const toR = Math.PI / 180;
+  const dLng = (b[0] - a[0]) * toR, la1 = a[1] * toR, la2 = b[1] * toR;
+  const y = Math.sin(dLng) * Math.cos(la2);
+  const x = Math.cos(la1) * Math.sin(la2) - Math.sin(la1) * Math.cos(la2) * Math.cos(dLng);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+// Frame the whole route at the overview (used by the intro screen and after a preview).
+function fitTourOverview(duration = 1000) {
+  if (!activeTour || !activeTour._route) return;
+  let bnds = null;
+  for (const c of activeTour._route) bnds = bnds ? bnds.extend(c) : new maplibregl.LngLatBounds(c, c);
+  if (bnds) map.fitBounds(bnds, { padding: 80, maxZoom: 16, pitch: 0, bearing: 0, duration });
+}
+
+// Light up the stops reached so far during a preview: earlier stops read as
+// "visited", the one just reached is highlighted, the rest stay faint.
+function paintPreviewStops(reached) {
+  if (!activeTour) return;
+  map.getSource("tour-stops").setData({
+    type: "FeatureCollection",
+    features: activeTour.stops.map((s, k) => ({
+      type: "Feature",
+      properties: { label: String(k + 1), state: k < reached ? "done" : k === reached ? "current" : "upcoming" },
+      geometry: featureIndex[s.ref].geometry,
+    })),
+  });
+}
+
+// A card that pops up at each stop during the preview's pause: photo, name and
+// a one-line summary, so you know what's coming.
+let previewPopup = null;
+function showStopCard(k) {
+  if (!activeTour) return;
+  const f = featureIndex[activeTour.stops[k].ref], p = f.properties;
+  const name = p.name || p.title || p.id;
+  let line = String(asArray(p.summary)[0] || "").replace(/[*_]/g, "").trim() || hookOf(p);
+  if (line.length > 120) line = line.slice(0, 117).trim() + "…";
+  const img = p.image ? `<div class="pvc-img" style="background-image:url('${p.image}')"></div>` : "";
+  const html = `<div class="pvc">${img}<div class="pvc-body">
+      <span class="pvc-num">Stop ${k + 1} of ${activeTour.stops.length}</span>
+      <strong class="pvc-name">${name}</strong>
+      ${line ? `<span class="pvc-line">${line}</span>` : ""}
+    </div></div>`;
+  if (!previewPopup) previewPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 18, anchor: "bottom", maxWidth: "250px", className: "pv-popup" });
+  previewPopup.setLngLat(featureCenter(f)).setHTML(html).addTo(map);
+}
+function hideStopLabel() { if (previewPopup) previewPopup.remove(); }
+
+// Cinematic preview: MapLibre eases the camera stop-to-stop (smooth even when a
+// frame drops), pausing at each to light it up and show its card, drawing the
+// line in as it goes. Skip (or ✕) cuts back to the overview.
+function previewTour() {
+  if (previewOn || !activeTour || !activeTour._route || activeTour._route.length < 2) return;
+  const route = activeTour._route, split = activeTour._splitIdx, stops = activeTour.stops;
+  const cum = [0];
+  for (let i = 1; i < route.length; i++) cum.push(cum[i - 1] + metersBetween(route[i - 1], route[i]));
+  previewOn = true;
+  previewSpeed = 1;
+  const token = ++previewToken;
+  const live = () => previewOn && token === previewToken && activeTour;
+  setPreviewChrome(true);
+  stopBeacon();
+  clearTourTimer();
+  map.getSource("tour-route-done").setData(EMPTY_FC);
+  paintPreviewStops(-1);
+
+  const ZOOM = 14.4, PITCH = 45, DWELL = 1500;
+  const stopCoord = (k) => featureIndex[stops[k].ref].geometry.coordinates;
+  const heading = (k) => (k < stops.length - 1 ? bearingBetween(stopCoord(k), stopCoord(k + 1)) : map.getBearing());
+  const drawUpTo = (vtx) => { const d = route.slice(0, vtx + 1); if (d.length >= 2) map.getSource("tour-route-done").setData(lineFC(d)); };
+  const easeSine = (t) => 0.5 * (1 - Math.cos(Math.PI * t));
+
+  const goLeg = (k) => {
+    if (!live()) return;
+    const prevV = k > 0 ? split[k - 1] : 0, curV = split[k];
+    const legDist = Math.max(1, cum[curV] - cum[prevV]);
+    const baseDur = k === 0 ? 1600 : Math.min(5000, Math.max(1900, legDist * 5)); // gentle, length-scaled
+    const dur = baseDur / previewSpeed; // live speed control (1× / 2× / 3×)
+    // Draw the line in across the leg on a light timer, decoupled from the camera.
+    if (previewDrawTimer) clearInterval(previewDrawTimer);
+    const t0 = performance.now();
+    previewDrawTimer = setInterval(() => {
+      if (!live()) { clearInterval(previewDrawTimer); return; }
+      const f = Math.min(1, (performance.now() - t0) / dur);
+      const dd = cum[prevV] + (cum[curV] - cum[prevV]) * f;
+      let i = prevV; while (i < curV && cum[i] < dd) i++;
+      drawUpTo(i);
+      if (f >= 1) clearInterval(previewDrawTimer);
+    }, 90);
+    // MapLibre owns the camera motion — smooth, and it copes with dropped frames.
+    map.easeTo({ center: stopCoord(k), zoom: ZOOM, pitch: PITCH, bearing: heading(k), duration: dur, easing: easeSine });
+    previewTimer = setTimeout(() => {
+      if (!live()) return;
+      drawUpTo(curV);
+      paintPreviewStops(k);
+      showStopCard(k);
+      previewTimer = setTimeout(() => {
+        if (!live()) return;
+        hideStopLabel();
+        if (k + 1 >= stops.length) { endPreview(); return; }
+        goLeg(k + 1);
+      }, DWELL / previewSpeed);
+    }, dur + 60);
+  };
+  goLeg(0);
+}
+
+function endPreview() {
+  if (!previewOn) return;
+  previewOn = false;
+  previewToken++;
+  if (previewTimer) { clearTimeout(previewTimer); previewTimer = null; }
+  if (previewDrawTimer) { clearInterval(previewDrawTimer); previewDrawTimer = null; }
+  hideStopLabel();
+  setPreviewChrome(false);
+  if (activeTour) { paintTourProgress(-1); fitTourOverview(1100); } // back to the overview
+}
+
+// Swap the intro bar for the preview controls (speed toggle + Skip) while flying.
+const PREVIEW_SPEEDS = [1, 2, 3];
+function setPreviewChrome(on) {
+  const intro = document.getElementById("ts-intro");
+  if (intro) intro.style.display = on ? "none" : "";
+  let bar = document.getElementById("preview-ctrl");
+  if (on && !bar) {
+    bar = document.createElement("div");
+    bar.id = "preview-ctrl";
+    const speed = document.createElement("button");
+    speed.id = "preview-speed";
+    speed.type = "button";
+    const sync = () => { speed.textContent = previewSpeed + "× speed"; };
+    sync();
+    speed.addEventListener("click", () => {
+      previewSpeed = PREVIEW_SPEEDS[(PREVIEW_SPEEDS.indexOf(previewSpeed) + 1) % PREVIEW_SPEEDS.length];
+      sync(); // takes effect from the next leg/pause
+    });
+    const skip = document.createElement("button");
+    skip.id = "preview-skip";
+    skip.type = "button";
+    skip.textContent = "Skip preview ⏭";
+    skip.addEventListener("click", endPreview);
+    bar.append(speed, skip);
+    document.body.appendChild(bar);
+  } else if (!on && bar) {
+    bar.remove();
+  }
+}
+
 // A branch can jump to another stop index in this tour, or to any feature.
 function followBranch(branch) {
   if (!branch) return;
@@ -1355,6 +1746,9 @@ function followBranch(branch) {
 function startTour(tour) {
   clearTourTimer();
   tourPlaying = false;
+  document.body.classList.add("in-tour");  // locks into the tour: hides the sidebar + ◆ Tours button
+  hideLauncher();                          // leave the landing screen for the map
+  if (typeof map !== "undefined") map.resize(); // sidebar gone on desktop → let the map fill
   closeStory(); // drop any open card/sheet: the stop overlay is the tour UI
   activeTour = tour;
   tourIndex = -1; // no stop open yet (the route overview shows first)
@@ -1368,19 +1762,10 @@ function startTour(tour) {
   const coords = tour.stops.map((s) => featureIndex[s.ref].geometry.coordinates);
   // Walking tours carry a precomputed pedestrian path (pipeline/route_walks.py)
   // that follows real streets and tracks; other tours draw straight hops.
-  map.getSource("tour-route").setData({
-    type: "Feature",
-    properties: {},
-    geometry: { type: "LineString", coordinates: tour.path || coords },
-  });
-  map.getSource("tour-stops").setData({
-    type: "FeatureCollection",
-    features: tour.stops.map((s, i) => ({
-      type: "Feature",
-      properties: { label: String(i + 1) },
-      geometry: featureIndex[s.ref].geometry,
-    })),
-  });
+  // Map each stop onto the route so it can be split into walked/ahead, then
+  // paint the "nothing done yet" state (stop 1 glows as the next beacon).
+  routeProgressSetup(tour);
+  paintTourProgress(-1);
   // During a tour, hide the ordinary pins so only the tour's route and stops show.
   for (const t of TYPES) {
     if (map.getLayer(t.layer)) map.setLayoutProperty(t.layer, "visibility", "none");
@@ -1415,10 +1800,12 @@ function showTourIntro(tour, coords) {
   bar.innerHTML = `
     <div class="tsi-text"><strong>${tour.title}</strong><span>${meta}</span></div>
     ${canReroll ? `<button class="tsi-reroll" type="button" title="Different route">↻</button>` : ""}
-    <button class="tsi-start" type="button">▶ Start</button>
-    <button class="tsi-x" type="button" aria-label="End tour">✕</button>`;
+    <button class="tsi-preview" type="button" title="Fly the route">▶ Preview</button>
+    <button class="tsi-start" type="button">Start ›</button>
+    <button class="tsi-x" type="button" aria-label="Back to tours">✕</button>`;
+  bar.querySelector(".tsi-preview").addEventListener("click", previewTour);
   bar.querySelector(".tsi-start").addEventListener("click", () => showTourStop(0));
-  bar.querySelector(".tsi-x").addEventListener("click", exitTour);
+  bar.querySelector(".tsi-x").addEventListener("click", exitTour); // back to the tour picker
   if (canReroll) bar.querySelector(".tsi-reroll").addEventListener("click", async (e) => {
     e.target.disabled = true;
     await window.regenWalkingTour();
@@ -1807,6 +2194,134 @@ function buildTourFilter(list, kindsPresent) {
   return bar;
 }
 
+// ============================================================================
+// TOUR LAUNCHER — the tour-first landing screen. Opens over the map on load;
+// "Explore the map freely" (or the ✕) drops into free-browse, and the ◆ Tours
+// home button brings it back. Tours group by neighbourhood (where you can walk)
+// or by theme (what you love). Metadata comes from pipeline/tour_metadata.py.
+// ============================================================================
+// Neighbourhoods ordered harbour → east → north → west; armchair tours (no
+// neighbourhood) fall into a trailing "Across Sydney" group so nothing hides.
+const NB_ORDER = [
+  "City & The Rocks", "City & The Domain", "The Harbour", "Eastern Harbour",
+  "Eastern Beaches", "Botany Bay", "Manly & the North", "Parramatta & the West",
+];
+const DIFF_LABEL = { easy: "Easy", moderate: "Moderate", hard: "Challenging" };
+const FEATURE_LABEL = { stairs: "Stairs", hills: "Hills", cliffs: "Cliffs", "step-free": "Step-free", sand: "Sand" };
+let launcherTab = "neighbourhood";
+
+// The at-a-glance facts row on a card: real walks lead with distance/difficulty
+// and the "stairs? hills?" cues; armchair tours read as a reading experience.
+function launcherMeta(t) {
+  if (t.virtual) {
+    return `<span class="lc-chip virtual">Virtual</span>
+      <span class="lc-fact">${t.stops.length} stops</span>
+      <span class="lc-fact">~${t.duration_min} min read</span>
+      ${t.theme ? `<span class="lc-fact">${t.theme}</span>` : ""}`;
+  }
+  const feats = (t.features || []).map((f) => `<span class="lc-feat">${FEATURE_LABEL[f] || f}</span>`).join("");
+  return `<span class="lc-fact">${t.distance_km} km</span>
+    <span class="lc-fact">~${t.duration_min} min</span>
+    <span class="lc-fact">${t.stops.length} stops</span>
+    <span class="lc-diff ${t.difficulty}">${DIFF_LABEL[t.difficulty] || t.difficulty}</span>
+    ${feats}`;
+}
+
+function launcherCard(t) {
+  const hero = tourHero(t);
+  const walk = !t.virtual;
+  return `<button class="lcard${walk ? " walk" : ""}" type="button" data-id="${t.id}">
+    <div class="lc-thumb${hero ? "" : " noimg"}"${hero ? ` style="background-image:url('${hero}')"` : ""}>
+      <span class="lc-badge">${walk ? "Walk" : "Armchair"}</span>
+      ${routeSvg(t)}
+    </div>
+    <div class="lc-body">
+      <strong class="lc-title">${t.title}</strong>
+      <span class="lc-teaser">${t.teaser || t.blurb || ""}</span>
+      <span class="lc-meta">${launcherMeta(t)}</span>
+    </div>
+  </button>`;
+}
+
+// Build the grouped shelves for the active tab.
+function launcherGroups() {
+  if (launcherTab === "theme") {
+    return THEMES
+      .map((th) => ({ title: th, tours: allTours.filter((t) => t.theme === th) }))
+      .filter((g) => g.tours.length);
+  }
+  const groups = NB_ORDER
+    .map((nb) => ({ title: nb, tours: allTours.filter((t) => t.neighbourhood === nb) }))
+    .filter((g) => g.tours.length);
+  const armchair = allTours.filter((t) => !t.neighbourhood);
+  if (armchair.length) groups.push({ title: "Across Sydney", sub: "armchair tours", tours: armchair });
+  return groups;
+}
+
+function renderLauncher() {
+  const body = document.getElementById("lnr-body");
+  if (!body) return;
+  body.innerHTML = launcherGroups().map((g) => `
+    <section class="lnr-group">
+      <h2 class="lnr-gh">${g.title}${g.sub ? `<span class="lnr-gsub">${g.sub}</span>` : ""}</h2>
+      <div class="lnr-cards">${g.tours.map(launcherCard).join("")}</div>
+    </section>`).join("");
+  body.querySelectorAll(".lcard").forEach((c) =>
+    c.addEventListener("click", () => {
+      const t = allTours.find((x) => x.id === c.dataset.id);
+      if (t) { hideLauncher(); startTour(t); }
+    }));
+}
+
+// One-time scaffold + wiring of the launcher chrome.
+function buildLauncher() {
+  const el = document.getElementById("launcher");
+  if (!el) return;
+  el.innerHTML = `
+    <div class="lnr-head">
+      <div class="lnr-title">
+        <h1>Sydney, Layered</h1>
+        <p class="lnr-tag">Choose a walk and let the city tell its story — or explore the map on your own.</p>
+      </div>
+      <div class="lnr-tabs" role="tablist">
+        <button class="lnr-tab active" type="button" data-tab="neighbourhood">By neighbourhood</button>
+        <button class="lnr-tab" type="button" data-tab="theme">By theme</button>
+      </div>
+    </div>
+    <div id="lnr-body" class="lnr-body"></div>
+    <button class="lnr-explore" type="button">Explore the map freely →</button>`;
+  el.querySelectorAll(".lnr-tab").forEach((tab) =>
+    tab.addEventListener("click", () => {
+      launcherTab = tab.dataset.tab;
+      el.querySelectorAll(".lnr-tab").forEach((x) => x.classList.toggle("active", x === tab));
+      renderLauncher();
+      document.getElementById("lnr-body").scrollTop = 0;
+    }));
+  el.querySelector(".lnr-explore").addEventListener("click", hideLauncher);
+  const home = document.getElementById("home-btn");
+  if (home) home.addEventListener("click", showLauncher);
+  renderLauncher();
+}
+
+function showLauncher() {
+  const el = document.getElementById("launcher");
+  if (!el) return;
+  renderLauncher();
+  el.hidden = false;
+  void el.offsetHeight; // reflow so the fade-in runs
+  el.classList.add("show");
+  document.body.classList.add("launcher-open");
+  if (typeof map !== "undefined") map.resize(); // sidebar hidden behind the picker
+}
+function hideLauncher() {
+  const el = document.getElementById("launcher");
+  if (!el) return;
+  el.classList.remove("show");
+  document.body.classList.remove("launcher-open");
+  if (typeof map !== "undefined") map.resize(); // free map: sidebar returns unless a tour is active
+  setTimeout(() => { if (!document.body.classList.contains("launcher-open")) el.hidden = true; }, 400);
+}
+
 // --- Water awareness for generated walking routes ---
 // web/data/water.geojson holds the major bodies (coarse, ~250 m shoreline
 // error, built by pipeline/lint_tours.py). Loaded lazily on first use.
@@ -2173,12 +2688,12 @@ async function loadStories() {
     type: "circle",
     source: "stories",
     paint: {
-      "circle-radius": rankRamp([4.2, 2.2, 1.3], [5.5, 4, 2.7], 7.5),
+      "circle-radius": PIN_RADIUS,
       "circle-color": periodColorExpression,
-      "circle-opacity": rankRamp([1, 0.75, 0.55], [1, 1, 0.85], 1),
-      "circle-stroke-width": rankRamp([1.2, 0.6, 0.3], [1.4, 1.1, 0.8], 2),
+      "circle-opacity": 1,
+      "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 10, 1.2, 13, 1.4, 16, 2],
       "circle-stroke-color": "#f7f3ec",
-      "circle-stroke-opacity": rankRamp([1, 0.7, 0.45], [1, 1, 0.8], 1),
+      "circle-stroke-opacity": 1,
     },
   });
 
@@ -2247,12 +2762,12 @@ async function loadBuildings() {
     type: "circle",
     source: "buildings",
     paint: {
-      "circle-radius": rankRamp([3.8, 2, 1.2], [5, 3.6, 2.5], 6.5),
+      "circle-radius": PIN_RADIUS,
       "circle-color": "#f7f3ec",
-      "circle-opacity": rankRamp([1, 0.7, 0.5], [1, 1, 0.8], 1),
-      "circle-stroke-width": rankRamp([1.6, 0.9, 0.5], [2, 1.6, 1.1], 3),
+      "circle-opacity": 1,
+      "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 10, 1.6, 13, 2, 16, 3],
       "circle-stroke-color": periodColorExpression,
-      "circle-stroke-opacity": rankRamp([1, 0.75, 0.55], [1, 1, 0.85], 1),
+      "circle-stroke-opacity": 1,
     },
   });
 
@@ -2345,12 +2860,12 @@ async function loadPeople() {
     type: "circle",
     source: "people",
     paint: {
-      "circle-radius": rankRamp([3.2, 1.7, 1], [4.2, 3, 2.2], 5.2),
+      "circle-radius": PIN_RADIUS,
       "circle-color": "#2b2118",
-      "circle-opacity": rankRamp([1, 0.7, 0.5], [1, 1, 0.8], 1),
-      "circle-stroke-width": rankRamp([1.3, 0.7, 0.4], [1.6, 1.3, 0.9], 2.5),
+      "circle-opacity": 1,
+      "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 10, 1.3, 13, 1.6, 16, 2.5],
       "circle-stroke-color": periodColorExpression,
-      "circle-stroke-opacity": rankRamp([1, 0.75, 0.55], [1, 1, 0.85], 1),
+      "circle-stroke-opacity": 1,
     },
   });
 
@@ -2710,6 +3225,8 @@ map.on("load", async () => {
   });
 
   // Tour route sits under the pins (added first, so pin layers stack above it).
+  // Two layers: the road still ahead (faint dots) and the ground already walked
+  // (solid), so the line visibly fills in as you complete stops.
   map.addSource("tour-route", { type: "geojson", data: EMPTY_FC });
   map.addLayer({
     id: "tour-route",
@@ -2719,7 +3236,32 @@ map.on("load", async () => {
     paint: {
       "line-color": "#d4582a",
       "line-width": 3,
+      "line-opacity": 0.5,
       "line-dasharray": [0.1, 2],
+    },
+  });
+  map.addSource("tour-route-done", { type: "geojson", data: EMPTY_FC });
+  map.addLayer({
+    id: "tour-route-done",
+    type: "line",
+    source: "tour-route-done",
+    layout: { "line-cap": "round", "line-join": "round" },
+    paint: {
+      "line-color": "#d4582a",
+      "line-width": 4.5,
+    },
+  });
+  // The single leg being walked right now — brightly highlighted over the route
+  // while the between-stops walk card is open.
+  map.addSource("tour-leg", { type: "geojson", data: EMPTY_FC });
+  map.addLayer({
+    id: "tour-leg",
+    type: "line",
+    source: "tour-leg",
+    layout: { "line-cap": "round", "line-join": "round" },
+    paint: {
+      "line-color": "#e0873a",
+      "line-width": 6,
     },
   });
 
@@ -2730,16 +3272,34 @@ map.on("load", async () => {
   buildSearch();
   await loadDossiers();
 
-  // Numbered stop badges, above the pins.
+  // A soft pulsing halo on the NEXT stop — a subtle beacon drawing you onward.
+  // Sits under the badges (added before them) so the number stays crisp on top.
+  map.addSource("tour-beacon", { type: "geojson", data: EMPTY_FC });
+  map.addLayer({
+    id: "tour-beacon",
+    type: "circle",
+    source: "tour-beacon",
+    paint: {
+      "circle-color": "#e0873a",
+      "circle-opacity": 0.4,
+      "circle-radius": 14,
+      "circle-stroke-width": 0,
+    },
+  });
+
+  // Numbered stop badges, above the pins. Colour + size encode each stop's
+  // state relative to where you are: done · current · next · upcoming.
   map.addSource("tour-stops", { type: "geojson", data: EMPTY_FC });
   map.addLayer({
     id: "tour-stop-badges",
     type: "circle",
     source: "tour-stops",
     paint: {
-      "circle-radius": 9,
-      "circle-color": "#d4582a",
-      "circle-stroke-width": 2,
+      "circle-radius": ["match", ["get", "state"],
+        "current", 11, "next", 10, "done", 8, /* upcoming */ 8],
+      "circle-color": ["match", ["get", "state"],
+        "done", "#bf7a58", "current", "#d4582a", "next", "#e0873a", /* upcoming */ "#c2b7a3"],
+      "circle-stroke-width": ["match", ["get", "state"], "current", 3, 2],
       "circle-stroke-color": "#f7f3ec",
     },
   });
@@ -2765,6 +3325,11 @@ map.on("load", async () => {
   if (boot) { boot.style.opacity = "0"; setTimeout(() => boot.remove(), 450); }
   document.body.classList.add("ready");
   fitMap();
+
+  // Tour-first: open onto the "choose a tour" landing screen (the map waits
+  // behind it). "Explore the map freely" or a tour takes over from here.
+  buildLauncher();
+  showLauncher();
 });
 
 // If any data load rejects, the boot overlay stays — turn it into an error message.

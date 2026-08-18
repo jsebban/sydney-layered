@@ -7,7 +7,7 @@ const COLLECTIONS = {
   streets:   { file: "streets.geojson",   kind: "geojson", type: "street" },
   dossiers:  { file: "dossiers.json",     kind: "list",    type: "dossier" },
 };
-const TABS = ["people", "stories", "buildings", "streets", "dossiers"];
+const TABS = ["people", "stories", "buildings", "streets", "dossiers", "tours"];
 const AI_TELLS = ["rich tapestry", "stands as a testament", "a testament to", "testament to",
   "indelible", "nestled", "boasts", "bustling", "vibrant tapestry", "plays a vital role",
   "rich history", "stands as", "from humble beginnings", "it is worth noting", "delve"];
@@ -64,6 +64,7 @@ const esc = (s) => String(s == null ? "" : s).replace(/[&<>]/g, (c) => ({ "&": "
 async function boot() {
   for (const tab of TABS) {
     const c = COLLECTIONS[tab];
+    if (!c) continue; // e.g. "tours" — handled by the map-backed tour builder
     const raw = await (await fetch(`../data/${c.file}?v=${Date.now()}`)).json();
     const items = [];
     if (c.kind === "geojson") {
@@ -93,13 +94,25 @@ async function boot() {
 function renderTabs() {
   const nav = $("#tabs"); nav.innerHTML = "";
   for (const tab of TABS) {
+    const label = tab[0].toUpperCase() + tab.slice(1);
+    if (!COL[tab]) { // tour builder tab — no reviewable collection
+      nav.append(el("button", { class: "tab" + (tab === activeTab ? " active" : ""), onclick: () => selectTab(tab) }, [label]));
+      continue;
+    }
     const items = COL[tab].items;
     const rev = items.filter((i) => review[i.key] && review[i.key].reviewed).length;
     nav.append(el("button", { class: "tab" + (tab === activeTab ? " active" : ""), onclick: () => selectTab(tab) },
-      [tab[0].toUpperCase() + tab.slice(1), el("span", { class: "cnt" }, `${rev}/${items.length}`)]));
+      [label, el("span", { class: "cnt" }, `${rev}/${items.length}`)]));
   }
 }
-function selectTab(tab) { activeTab = tab; activeKey = null; renderTabs(); renderList(); $("#editor").hidden = true; $("#empty").hidden = false; $("#side-pane").hidden = true; }
+function selectTab(tab) {
+  activeTab = tab; activeKey = null; renderTabs();
+  const builder = tab === "tours";
+  $("#layout").hidden = builder;
+  $("#tour-builder").hidden = !builder;
+  if (builder) { window.TourBuilder && window.TourBuilder.open(); return; }
+  renderList(); $("#editor").hidden = true; $("#empty").hidden = false; $("#side-pane").hidden = true;
+}
 
 // Create a new deep-dive (dossier) anchored to any feature, e.g. a story.
 function createDossier() {

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>Sydney, Layered — an interactive history of Sydney</title>
   <link href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css" rel="stylesheet" />
-  <link href="style.css?v=20260706d" rel="stylesheet" />
+  <link href="style.css?v=20260818a" rel="stylesheet" />
   <!-- PWA / install on iPhone -->
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#1f1b16" />
@@ -63,7 +63,7 @@
       <div id="theme-filter" class="chips"></div>
     </section>
 
-    <section class="control">
+    <section class="control" id="tours-control">
       <h2>Tours</h2>
       <ul id="tour-list" class="tour-cards"></ul>
     </section>
@@ -103,6 +103,7 @@
     </div>
   </main>
 
+  <button id="home-btn" aria-label="Browse tours">◆ Tours</button>
   <button id="sidebar-toggle" aria-label="Show stories panel" aria-expanded="false">☰ Explore</button>
   <button id="attrib-btn" aria-label="Map data credits" aria-expanded="false">ⓘ</button>
   <div id="credits" hidden>
@@ -112,14 +113,18 @@
     </div>
   </div>
   <div id="boot" role="status">Mapping Sydney…</div>
+  <!-- Tour-first landing: opens over the map; "Explore the map freely" drops into free-browse -->
+  <div id="launcher" hidden></div>
   <!-- Full-screen immersive reader for "library"-format deep dives (map hidden) -->
   <div id="reader" hidden></div>
   <!-- Full-screen tour stop (slides away between stops so the map flight shows) -->
   <div id="tourstop" hidden></div>
+  <!-- Between-stops walk card: a bottom sheet over the map with directions + narration -->
+  <div id="walkcard" hidden></div>
 
   <script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
-  <script src="app.js?v=20260706g"></script>
-  <script src="geo.js?v=20260706b"></script>
+  <script src="app.js?v=20260818a"></script>
+  <script src="geo.js?v=20260818a"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {

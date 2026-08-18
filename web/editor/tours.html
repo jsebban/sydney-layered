@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sydney, Layered — Tour Builder</title>
+  <link href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css" rel="stylesheet" />
+  <link href="editor.css?v=12" rel="stylesheet" />
+  <link href="tours.css?v=6" rel="stylesheet" />
+</head>
+<body data-standalone="1">
+  <header id="topbar">
+    <strong>Sydney, Layered · Tour Builder</strong>
+    <nav id="tabs"><a class="tab" href="./">‹ Content editor</a></nav>
+    <span id="tb-topstatus" class="muted"></span>
+    <button id="tb-save-top">Save</button>
+    <button id="tb-publish-top" title="Save + push to the live site">Publish ↑</button>
+  </header>
+
+  <section id="tour-builder">
+    <aside id="tb-rail"></aside>
+    <div id="tb-map"></div>
+  </section>
+
+  <div id="toast"></div>
+  <script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
+  <script src="tours.js?v=10"></script>
+  <script>
+    document.getElementById("tb-save-top").addEventListener("click", () => window.TourBuilder.save());
+    document.getElementById("tb-publish-top").addEventListener("click", () => window.TourBuilder.publish());
+  </script>
+</body>
+</html>
