@@ -1287,6 +1287,23 @@ function stopPapersHtml(stop) {
     .map((p) => `<a href="${p.url}" target="_blank" rel="noopener">${p.label || p.url}</a>`).join("")}</div>`;
 }
 
+// The pin's own deep-dive (dossier), flattened into stacked sections so a tour
+// stop shows the same rich content the pin shows on the map.
+function dossierChaptersHtml(d) {
+  const imgUrl = (v) => (typeof v === "string" ? v : (v && v.url) || "");
+  return (d.chapters || []).map((c) => {
+    const beats = (c.beats && c.beats.length) ? c.beats : [{ heading: c.title, body: [], images: c.image ? [c.image] : [] }];
+    return beats.map((b) => {
+      const src = imgUrl((b.images && b.images[0]) || c.image);
+      const img = src ? `<div class="story-img"><img src="${asset(src)}" alt="" loading="lazy"></div>` : "";
+      const audio = b.audio ? `<audio class="ts-audio" controls preload="none" src="${asset(b.audio)}"></audio>` : "";
+      const paras = asArray(b.body).map((x) => `<p class="beat-p">${inlineMd(x)}</p>`).join("");
+      const heading = b.heading || c.title || "";
+      return `<section class="ts-chap">${heading ? `<h3 class="ts-chap-h">${inlineMd(heading)}</h3>` : ""}${img}${audio}${paras}</section>`;
+    }).join("");
+  }).join("");
+}
+
 function tourStopContent(stop, feature) {
   const p = feature.properties;
   const branches = Array.isArray(stop.branches) && stop.branches.length
@@ -1304,6 +1321,23 @@ function tourStopContent(stop, feature) {
         <h2 class="beat-h">${p.title || p.name}</h2>
         ${stopChaptersHtml(stop)}
         ${stopPapersHtml(stop)}
+        ${stop.quote ? `<blockquote class="tour-quote">${inlineMd(stop.quote)}</blockquote>` : ""}
+        ${branches}
+      </div>
+      <div class="beat-film"></div>
+    </div>`;
+  }
+
+  // No per-tour override → show the pin's own deep-dive so the stop matches the
+  // map pin. Only if there's no dossier do we fall back to the plain body.
+  const dossier = dossiersByAnchor[stop.ref];
+  if (dossier && Array.isArray(dossier.chapters) && dossier.chapters.length) {
+    return `<div class="beat beat-in beat-textonly">
+      <div class="beat-words">
+        ${stop.note ? `<p class="ts-note">${inlineMd(stop.note)}</p>` : ""}
+        <h2 class="beat-h">${p.title || p.name}</h2>
+        ${dossierChaptersHtml(dossier)}
+        ${detailPapers(p)}
         ${stop.quote ? `<blockquote class="tour-quote">${inlineMd(stop.quote)}</blockquote>` : ""}
         ${branches}
       </div>
